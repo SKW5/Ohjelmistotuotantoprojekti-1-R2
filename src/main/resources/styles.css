@@ -1,0 +1,143 @@
+.root {
+    -fx-font-family: "DM Serif Display";
+    -fx-background-color: #f7f5ef;
+    -fx-text-fill: #171717;
+}
+.app {
+    -fx-background-color: #f7f5ef;
+}
+
+.header {
+    -fx-background-color: #fbfaf6;
+    -fx-border-color: #e5e2da;
+    -fx-border-width: 0 0 1 0;
+}
+
+.logo {
+    -fx-font-family: "DM Serif Display";
+    -fx-font-size: 18px;
+}
+
+
+.nav-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 7 4;
+    -fx-cursor: hand;
+}
+
+.nav-button:hover {
+    -fx-underline: true;
+}
+
+.dark-button {
+    -fx-background-color: #171717;
+    -fx-text-fill: white;
+    -fx-background-radius: 2;
+    -fx-padding: 8 14;
+    -fx-cursor: hand;
+}
+
+.dark-button:hover {
+    -fx-background-color: #333333;
+}
+
+.page-title {
+    -fx-font-family: "DM Serif Display";
+    -fx-font-size: 28px;
+}
+
+.muted {
+    -fx-text-fill: #77736a;
+    -fx-font-size: 12px;
+}
+
+.calendar {
+    -fx-background-color: #fffefa;
+    -fx-border-color: #dfdcd4;
+}
+
+.day-header {
+    -fx-background-color: #ffb85d;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.time-label {
+    -fx-background-color: #fbfaf6;
+    -fx-text-fill: #77736a;
+    -fx-font-size: 10px;
+    -fx-padding: 6;
+}
+
+.event {
+    -fx-background-radius: 3;
+    -fx-border-radius: 3;
+    -fx-border-width: 1;
+}
+
+.event-name {
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.event-room {
+    -fx-font-size: 10px;
+    -fx-text-fill: #5e5a52;
+}
+
+.event-blue {
+    -fx-background-color: #dce8f4;
+    -fx-border-color: #c7d8e9;
+}
+
+.event-green {
+    -fx-background-color: #dcebdc;
+    -fx-border-color: #c8ddc8;
+}
+
+.event-yellow {
+    -fx-background-color: #eee5b7;
+    -fx-border-color: #ded39d;
+}
+
+.event-peach {
+    -fx-background-color: #f0dcc5;
+    -fx-border-color: #e2c9ab;
+}
+
+.event-purple {
+    -fx-background-color: #e3d7ef;
+    -fx-border-color: #d3c4e2;
+}
+
+.card {
+    -fx-background-color: #fffefa;
+    -fx-border-color: #e1ded6;
+    -fx-border-radius: 2;
+}
+
+.section-title {
+    -fx-font-family: "DM Serif Display";
+    -fx-font-size: 20px;
+}
+.small-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #68645d;
+}§
+
+.text-field,
+.combo-box {
+    -fx-background-color: #fffefa;
+    -fx-border-color: #d8d5cd;
+    -fx-border-radius: 2;
+}
+
+.calendar-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.dialog {
+    -fx-background-color: #fffefa;
+}
