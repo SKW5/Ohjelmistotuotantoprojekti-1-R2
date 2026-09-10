@@ -1,4 +1,4 @@
-# Student Timetable — JavaFX
+# Student Timetable JavaFX
 
 Yksinkertainen frontend.
 
