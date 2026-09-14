@@ -1,5 +1,6 @@
 package com.example.timetable;
 
+import com.example.timetable.Main;
 import com.example.timetable.ui.SettingsView;
 import com.example.timetable.ui.TimetableView;
 import javafx.application.Platform;
@@ -8,6 +9,8 @@ import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.atomic.AtomicReference;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
@@ -17,6 +20,27 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class mainTest {
+
+    private static void runOnFxThread(Runnable action) throws Exception {
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Throwable> error = new AtomicReference<>();
+
+        Platform.runLater(() -> {
+            try {
+                action.run();
+            } catch (Throwable t) {
+                error.set(t);
+            } finally {
+                latch.countDown();
+            }
+        });
+
+        latch.await();
+
+        if (error.get() != null) {
+            throw new AssertionError(error.get());
+        }
+    }
 
     @BeforeAll
     static void initJavaFx() {
@@ -29,25 +53,43 @@ public class mainTest {
 
     @Test
     void start_shouldBuildSceneAndLoadTimetable() throws Exception {
-        Main app = new Main();
-        Stage stage = new Stage();
+        CountDownLatch latch = new CountDownLatch(1);
+        AtomicReference<Throwable> error = new AtomicReference<>();
 
-        app.start(stage);
+        Platform.runLater(() -> {
+            try {
+                Main app = new Main();
+                Stage stage = new Stage();
 
-        assertEquals("Student Timetable", stage.getTitle());
-        assertEquals(950, stage.getMinWidth(), 0.0);
-        assertEquals(600, stage.getMinHeight(), 0.0);
-        assertNotNull(stage.getScene());
+                app.start(stage);
 
-        BorderPane root = getPrivateField(app, "root", BorderPane.class);
-        StackPane content = getPrivateField(app, "content", StackPane.class);
+                assertEquals("Student Timetable", stage.getTitle());
+                assertEquals(950, stage.getMinWidth(), 0.0);
+                assertEquals(600, stage.getMinHeight(), 0.0);
+                assertNotNull(stage.getScene());
 
-        assertEquals(root, stage.getScene().getRoot());
-        assertEquals(content, root.getCenter());
-        assertEquals(1, content.getChildren().size());
-        assertTrue(content.getChildren().get(0) instanceof TimetableView);
+                BorderPane root = getPrivateField(app, "root", BorderPane.class);
+                StackPane content = getPrivateField(app, "content", StackPane.class);
 
-        stage.close();
+                assertEquals(root, stage.getScene().getRoot());
+                assertEquals(content, root.getCenter());
+                assertEquals(1, content.getChildren().size());
+                assertTrue(content.getChildren().get(0) instanceof TimetableView);
+
+                stage.close();
+
+            } catch (Throwable t) {
+                error.set(t);
+            } finally {
+                latch.countDown();
+            }
+        });
+
+        latch.await();
+
+        if (error.get() != null) {
+            throw new AssertionError(error.get());
+        }
     }
 
     @Test
