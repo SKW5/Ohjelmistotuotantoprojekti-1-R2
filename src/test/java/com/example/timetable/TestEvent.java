@@ -1,3 +1,5 @@
+package com.example.timetable;
+
 import com.example.timetable.model.Event;
 import com.example.timetable.repository.eventRepository;
 import com.example.timetable.service.AddEvent;
