@@ -1,5 +1,7 @@
 package com.example.timetable;
 
+import com.example.timetable.repository.eventRepository;
+import com.example.timetable.service.AddEvent;
 import com.example.timetable.ui.HeaderView;
 import com.example.timetable.ui.LoginDialog;
 import com.example.timetable.ui.SettingsView;
@@ -11,10 +13,14 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
 
+import java.sql.Connection;
+import java.sql.DriverManager;
+
 public class Main extends Application {
 
     private final BorderPane root = new BorderPane();
     private final StackPane content = new StackPane();
+    private AddEvent addEventService;
 
     @Override
     public void start(Stage stage) {
@@ -22,6 +28,26 @@ public class Main extends Application {
                 getClass().getResourceAsStream("/fonts/DMSerifDisplay-Regular.ttf"),
                 20
         );
+
+        try {
+        // Create database connection
+        Connection connection = DriverManager.getConnection(
+                "jdbc:mariadb://localhost:3306/student_timetable",
+                "student",
+                "student"
+        );
+
+            // Create repository
+            eventRepository repository =
+                    new eventRepository(connection);
+
+            // Create service
+            addEventService =
+                    new AddEvent(repository);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         HeaderView header = new HeaderView(
                 this::showTimetable,
@@ -48,7 +74,7 @@ public class Main extends Application {
     }
 
     private void showTimetable() {
-        content.getChildren().setAll(new TimetableView());
+        content.getChildren().setAll(new TimetableView(addEventService));
     }
 
     private void showSettings() {

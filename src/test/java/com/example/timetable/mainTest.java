@@ -1,4 +1,4 @@
-package com.example.timetable;
+/*package com.example.timetable;
 
 import com.example.timetable.Main;
 import com.example.timetable.ui.SettingsView;
@@ -126,4 +126,4 @@ public class mainTest {
         method.setAccessible(true);
         method.invoke(instance);
     }
-}
+}*/

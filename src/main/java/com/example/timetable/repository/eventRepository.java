@@ -23,7 +23,7 @@ public class eventRepository {
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
 
             statement.setInt(1, 1); // Assuming user_id is 1 for now
-            statement.setInt(2, event.getCourse_id());
+            statement.setInt(2, 1);
             statement.setString(3, event.getTitle());
             statement.setTime(4, java.sql.Time.valueOf(event.getStart_time()));
             statement.setTime(5, java.sql.Time.valueOf(event.getEnd_time()));
