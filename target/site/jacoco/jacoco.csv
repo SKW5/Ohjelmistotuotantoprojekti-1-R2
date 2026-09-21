@@ -1,2 +1,15 @@
 GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
-Ohjelmistotuotantoprojekti-1-R2,default,Main,3,4,0,0,1,2,1,1,1,1
+Ohjelmistotuotantoprojekti-1-R2,com.example.timetable.service,AddEvent,31,0,8,0,9,0,6,0,2,0
+Ohjelmistotuotantoprojekti-1-R2,com.example.timetable.service,RegisterUser,47,0,12,0,13,0,8,0,2,0
+Ohjelmistotuotantoprojekti-1-R2,com.example.timetable.service,passwordUtil,16,0,0,0,5,0,3,0,3,0
+Ohjelmistotuotantoprojekti-1-R2,com.example.timetable.ui,HeaderView,117,0,0,0,21,0,5,0,5,0
+Ohjelmistotuotantoprojekti-1-R2,com.example.timetable.ui,TimetableView,491,0,8,0,82,0,15,0,11,0
+Ohjelmistotuotantoprojekti-1-R2,com.example.timetable.ui,LoginDialog,21,0,0,0,7,0,2,0,2,0
+Ohjelmistotuotantoprojekti-1-R2,com.example.timetable.ui,SettingsView,273,0,0,0,48,0,6,0,6,0
+Ohjelmistotuotantoprojekti-1-R2,com.example.timetable.ui,AddEventDialog,435,0,10,0,101,0,12,0,7,0
+Ohjelmistotuotantoprojekti-1-R2,com.example.timetable.repository,loginRepository,8,0,0,0,4,0,2,0,2,0
+Ohjelmistotuotantoprojekti-1-R2,com.example.timetable.repository,eventRepository,64,0,0,0,17,0,2,0,2,0
+Ohjelmistotuotantoprojekti-1-R2,com.example.timetable.repository,register,46,0,0,0,14,0,2,0,2,0
+Ohjelmistotuotantoprojekti-1-R2,com.example.timetable,Main,137,0,0,0,33,0,6,0,6,0
+Ohjelmistotuotantoprojekti-1-R2,com.example.timetable.model,User,21,0,0,0,8,0,4,0,4,0
+Ohjelmistotuotantoprojekti-1-R2,com.example.timetable.model,Event,69,0,0,0,28,0,14,0,14,0

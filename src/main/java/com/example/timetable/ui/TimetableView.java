@@ -1,5 +1,6 @@
 package com.example.timetable.ui;
 
+import com.example.timetable.service.AddEvent;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -21,7 +22,11 @@ public class TimetableView extends VBox {
             "12:00", "13:00", "14:00", "15:00"
     };
 
-    public TimetableView() {
+    private final AddEvent addEventService;
+
+    public TimetableView(AddEvent addEventService) {
+        this.addEventService = addEventService;
+
         setSpacing(20);
         setPadding(new Insets(28));
 
@@ -56,8 +61,7 @@ public class TimetableView extends VBox {
 
         Button add = new Button("+ Add event");
         add.getStyleClass().add("dark-button");
-        add.setOnAction(e -> new AddEventDialog().show());
-
+        add.setOnAction(e -> new AddEventDialog(addEventService).show());
         titleRow.getChildren().addAll(titleBox, spacer, add);
         return titleRow;
     }
