@@ -3,7 +3,9 @@ package com.example.timetable;
 import com.example.timetable.repository.eventRepository;
 import com.example.timetable.service.AddEvent;
 import com.example.timetable.ui.HeaderView;
-import com.example.timetable.ui.LoginDialog;
+import com.example.timetable.ui.LandingView;
+import com.example.timetable.ui.LoginView;
+import com.example.timetable.ui.RegisterView;
 import com.example.timetable.ui.SettingsView;
 import com.example.timetable.ui.TimetableView;
 import javafx.application.Application;
@@ -21,13 +23,11 @@ public class Main extends Application {
     private final BorderPane root = new BorderPane();
     private final StackPane content = new StackPane();
     private AddEvent addEventService;
+    private Scene scene;
 
     @Override
     public void start(Stage stage) {
-        Font.loadFont(
-                getClass().getResourceAsStream("/fonts/DMSerifDisplay-Regular.ttf"),
-                20
-        );
+        loadFonts();
 
         try {
         // Create database connection
@@ -49,19 +49,7 @@ public class Main extends Application {
             e.printStackTrace();
         }
 
-        HeaderView header = new HeaderView(
-                this::showTimetable,
-                this::showSettings,
-                this::showLoginPlaceholder
-        );
-
-        root.getStyleClass().add("app");
-        root.setTop(header);
-        root.setCenter(content);
-
-        showTimetable();
-
-        Scene scene = new Scene(root, 1180, 720);
+        scene = new Scene(new StackPane(), 1180, 720);
         scene.getStylesheets().add(
                 getClass().getResource("/styles.css").toExternalForm()
         );
@@ -70,7 +58,61 @@ public class Main extends Application {
         stage.setMinWidth(950);
         stage.setMinHeight(600);
         stage.setScene(scene);
+
+        showLanding();
         stage.show();
+    }
+
+    private void loadFonts() {
+        Font.loadFont(
+                getClass().getResourceAsStream("/Fonts/DMSerifDisplay-Regular.ttf"),
+                20
+        );
+    }
+
+    private void showLanding() {
+        scene.setRoot(
+                new LandingView(
+                        this::showLogin,
+                        this::showRegister,
+                        this::showApplication
+                )
+        );
+    }
+
+    private void showLogin() {
+        scene.setRoot(
+                new LoginView(
+                        this::showRegister,
+                        this::showApplication
+                )
+        );
+    }
+
+    private void showRegister() {
+        scene.setRoot(
+                new RegisterView(
+                        this::showLogin,
+                        this::showApplication
+                )
+        );
+    }
+
+    private void showApplication() {
+        HeaderView header = new HeaderView(
+                this::showTimetable,
+                this::showSettings,
+                this::showLoginPlaceholder
+        );
+
+        if (!root.getStyleClass().contains("app")) {
+            root.getStyleClass().add("app");
+        }
+        root.setTop(header);
+        root.setCenter(content);
+
+        showTimetable();
+        scene.setRoot(root);
     }
 
     private void showTimetable() {
@@ -82,7 +124,7 @@ public class Main extends Application {
     }
 
     private void showLoginPlaceholder() {
-        new LoginDialog().show();
+        showLogin();
     }
 
     public static void main(String[] args) {
