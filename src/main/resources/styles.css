@@ -124,7 +124,89 @@
 .small-label {
     -fx-font-size: 11px;
     -fx-text-fill: #68645d;
-}§
+}
+
+.auth-screen {
+    -fx-background-color: #faf8f3;
+}
+
+.brand-title {
+    -fx-font-family: "Georgia";
+    -fx-font-size: 44px;
+    -fx-text-fill: #171717;
+}
+
+.auth-card {
+    -fx-padding: 28;
+    -fx-background-color: #fffefa;
+    -fx-border-color: #e1ded6;
+    -fx-border-radius: 2;
+    -fx-background-radius: 2;
+}
+
+.card-heading {
+    -fx-font-family: "Georgia";
+    -fx-font-size: 26px;
+    -fx-text-fill: #171717;
+}
+
+.field-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: #68645d;
+}
+
+.field-input {
+    -fx-pref-height: 38;
+    -fx-padding: 8 10;
+}
+
+.primary-button {
+    -fx-background-color: #171717;
+    -fx-text-fill: white;
+    -fx-background-radius: 2;
+    -fx-padding: 10 16;
+    -fx-cursor: hand;
+}
+
+.primary-button:hover {
+    -fx-background-color: #333333;
+}
+
+.secondary-button {
+    -fx-background-color: transparent;
+    -fx-text-fill: #171717;
+    -fx-border-color: #171717;
+    -fx-border-radius: 2;
+    -fx-background-radius: 2;
+    -fx-padding: 10 16;
+    -fx-cursor: hand;
+}
+
+.secondary-button:hover {
+    -fx-background-color: #efebe2;
+}
+
+.link-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 4 0;
+    -fx-text-fill: #171717;
+    -fx-underline: true;
+    -fx-cursor: hand;
+}
+
+.close-button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-text-fill: #171717;
+    -fx-font-size: 14px;
+    -fx-padding: 6 9;
+    -fx-cursor: hand;
+}
+
+.close-button:hover {
+    -fx-background-color: #efebe2;
+}
 
 .text-field,
 .combo-box {
