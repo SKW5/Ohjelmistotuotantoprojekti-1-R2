@@ -23,6 +23,7 @@ public class LandingView extends StackPane {
         VBox center = new VBox(18);
         center.setAlignment(Pos.CENTER);
         center.setMaxWidth(360);
+        center.getStyleClass().add("landing-panel");
 
         Label title = new Label("Student timetable");
         title.getStyleClass().add("brand-title");

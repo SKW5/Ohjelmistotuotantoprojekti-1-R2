@@ -24,7 +24,7 @@ public class LoginView extends StackPane {
         VBox card = new VBox(14);
         card.setAlignment(Pos.CENTER_LEFT);
         card.setMaxWidth(390);
-        card.getStyleClass().addAll("card", "auth-card");
+        card.getStyleClass().addAll("card", "auth-card", "login-card");
 
         Label title = new Label("Log in");
         title.getStyleClass().add("card-heading");
