@@ -102,7 +102,8 @@ public class Main extends Application {
         HeaderView header = new HeaderView(
                 this::showTimetable,
                 this::showSettings,
-                this::showLoginPlaceholder
+                this::showLogin,
+                this::showRegister
         );
 
         if (!root.getStyleClass().contains("app")) {
@@ -121,10 +122,6 @@ public class Main extends Application {
 
     private void showSettings() {
         content.getChildren().setAll(new SettingsView());
-    }
-
-    private void showLoginPlaceholder() {
-        showLogin();
     }
 
     public static void main(String[] args) {

@@ -99,11 +99,11 @@ public class TimetableView extends VBox {
 
     private void createHeaders(GridPane grid) {
         Label empty = new Label("");
-        empty.getStyleClass().add("day-header");
+        empty.getStyleClass().addAll("day-header", "corner-header");
         grid.add(empty, 0, 0);
 
         for (int col = 0; col < DAYS.length; col++) {
-            Label day = new Label(DAYS[col]);
+            Label day = new Label(spacedDayLabel(DAYS[col]));
             day.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
             day.setAlignment(Pos.CENTER);
             day.getStyleClass().addAll("day-header", "day-short");
@@ -171,5 +171,9 @@ public class TimetableView extends VBox {
         int endIndex = Math.max(0, Math.min(row + 1, TIMES.length - 1));
 
         return TIMES[startIndex] + "-" + TIMES[endIndex];
+    }
+
+    private String spacedDayLabel(String day) {
+        return String.join(" ", day.split(""));
     }
 }
