@@ -27,8 +27,8 @@ public class TimetableView extends VBox {
     public TimetableView(AddEvent addEventService) {
         this.addEventService = addEventService;
 
-        setSpacing(20);
-        setPadding(new Insets(28));
+        setSpacing(24);
+        setPadding(new Insets(32));
 
         HBox titleRow = createTitleRow();
         GridPane grid = createCalendar();
@@ -43,10 +43,10 @@ public class TimetableView extends VBox {
     }
 
     private HBox createTitleRow() {
-        HBox titleRow = new HBox(15);
+        HBox titleRow = new HBox(16);
         titleRow.setAlignment(Pos.CENTER_LEFT);
 
-        VBox titleBox = new VBox(3);
+        VBox titleBox = new VBox(4);
 
         Label title = new Label("Weekly timetable");
         title.getStyleClass().add("page-title");
@@ -59,8 +59,8 @@ public class TimetableView extends VBox {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button add = new Button("+ Add event");
-        add.getStyleClass().add("dark-button");
+        Button add = new Button("+ New event");
+        add.getStyleClass().addAll("dark-button", "primary-button", "new-event-button");
         add.setOnAction(e -> new AddEventDialog(addEventService).show());
         titleRow.getChildren().addAll(titleBox, spacer, add);
         return titleRow;
@@ -69,12 +69,13 @@ public class TimetableView extends VBox {
     private GridPane createCalendar() {
         GridPane grid = new GridPane();
         grid.getStyleClass().add("calendar");
-        grid.setGridLinesVisible(true);
+        grid.setGridLinesVisible(false);
 
         createColumns(grid);
         createRows(grid);
         createHeaders(grid);
         createTimeLabels(grid);
+        createCalendarCells(grid);
         addSampleEvents(grid);
 
         return grid;
@@ -92,7 +93,7 @@ public class TimetableView extends VBox {
 
     private void createRows(GridPane grid) {
         for (int row = 0; row <= TIMES.length; row++) {
-            grid.getRowConstraints().add(new RowConstraints(62));
+            grid.getRowConstraints().add(new RowConstraints(68));
         }
     }
 
@@ -105,7 +106,7 @@ public class TimetableView extends VBox {
             Label day = new Label(DAYS[col]);
             day.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
             day.setAlignment(Pos.CENTER);
-            day.getStyleClass().add("day-header");
+            day.getStyleClass().addAll("day-header", "day-short");
             grid.add(day, col + 1, 0);
         }
     }
@@ -116,6 +117,17 @@ public class TimetableView extends VBox {
             time.setAlignment(Pos.TOP_CENTER);
             time.getStyleClass().add("time-label");
             grid.add(time, 0, row + 1);
+        }
+    }
+
+    private void createCalendarCells(GridPane grid) {
+        for (int row = 0; row < TIMES.length; row++) {
+            for (int day = 0; day < DAYS.length; day++) {
+                Region cell = new Region();
+                cell.getStyleClass().add("calendar-cell");
+                cell.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
+                grid.add(cell, day + 1, row + 1);
+            }
         }
     }
 
@@ -137,17 +149,27 @@ public class TimetableView extends VBox {
             String room,
             String style
     ) {
-        VBox event = new VBox(2);
-        event.setPadding(new Insets(8));
-        event.getStyleClass().addAll("event", "event-" + style);
+        VBox event = new VBox(3);
+        event.setPadding(new Insets(9, 10, 8, 10));
+        event.getStyleClass().addAll("event", "event-block", "event-" + style);
 
         Label nameLabel = new Label(name);
         nameLabel.getStyleClass().add("event-name");
 
+        Label timeLabel = new Label(timeRange(row));
+        timeLabel.getStyleClass().add("event-time");
+
         Label roomLabel = new Label(room);
         roomLabel.getStyleClass().add("event-room");
 
-        event.getChildren().addAll(nameLabel, roomLabel);
+        event.getChildren().addAll(nameLabel, timeLabel, roomLabel);
         grid.add(event, day + 1, row + 1);
+    }
+
+    private String timeRange(int row) {
+        int startIndex = Math.max(0, Math.min(row, TIMES.length - 1));
+        int endIndex = Math.max(0, Math.min(row + 1, TIMES.length - 1));
+
+        return TIMES[startIndex] + "-" + TIMES[endIndex];
     }
 }

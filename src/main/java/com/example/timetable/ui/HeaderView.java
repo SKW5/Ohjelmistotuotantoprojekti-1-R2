@@ -26,10 +26,18 @@ public class HeaderView extends HBox {
         Button timetable = navButton("Timetable");
         Button settings = navButton("Settings");
         Button login = new Button("Login");
-        login.getStyleClass().add("dark-button");
+        login.getStyleClass().addAll("dark-button", "primary-button");
 
-        timetable.setOnAction(e -> onTimetable.run());
-        settings.setOnAction(e -> onSettings.run());
+        setActiveTab(timetable, settings);
+
+        timetable.setOnAction(e -> {
+            setActiveTab(timetable, settings);
+            onTimetable.run();
+        });
+        settings.setOnAction(e -> {
+            setActiveTab(settings, timetable);
+            onSettings.run();
+        });
         login.setOnAction(e -> onLogin.run());
 
         Region spacer = new Region();
@@ -40,8 +48,16 @@ public class HeaderView extends HBox {
 
     private Button navButton(String text) {
         Button button = new Button(text);
-        button.getStyleClass().add("nav-button");
+        button.getStyleClass().addAll("nav-button", "nav-tab");
         return button;
+    }
+
+    private void setActiveTab(Button active, Button inactive) {
+        inactive.getStyleClass().remove("active");
+
+        if (!active.getStyleClass().contains("active")) {
+            active.getStyleClass().add("active");
+        }
     }
 }
 

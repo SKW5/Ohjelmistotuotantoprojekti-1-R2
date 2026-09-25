@@ -13,8 +13,8 @@ import javafx.scene.layout.VBox;
 public class SettingsView extends VBox {
 
     public SettingsView() {
-        setSpacing(20);
-        setPadding(new Insets(28));
+        setSpacing(24);
+        setPadding(new Insets(32));
 
         Label title = new Label("System settings");
         title.getStyleClass().add("page-title");
@@ -24,7 +24,7 @@ public class SettingsView extends VBox {
         );
         subtitle.getStyleClass().add("muted");
 
-        HBox cards = new HBox(20);
+        HBox cards = new HBox(24);
         cards.setFillHeight(true);
 
         VBox profile = createProfileCard();
@@ -59,13 +59,13 @@ public class SettingsView extends VBox {
             String subtitle,
             Node... nodes
     ) {
-        VBox card = new VBox(13);
-        card.getStyleClass().add("card");
-        card.setPadding(new Insets(18));
+        VBox card = new VBox(14);
+        card.getStyleClass().addAll("card", "settings-card");
+        card.setPadding(new Insets(22));
         card.setPrefWidth(420);
 
         Label titleLabel = new Label(title);
-        titleLabel.getStyleClass().add("section-title");
+        titleLabel.getStyleClass().addAll("section-title", "card-heading");
 
         Label subtitleLabel = new Label(subtitle);
         subtitleLabel.getStyleClass().add("muted");
@@ -77,13 +77,13 @@ public class SettingsView extends VBox {
     }
 
     private VBox field(String label, String value) {
-        VBox box = new VBox(5);
+        VBox box = new VBox(6);
 
         Label labelNode = new Label(label);
-        labelNode.getStyleClass().add("small-label");
+        labelNode.getStyleClass().addAll("small-label", "field-label");
 
         TextField field = new TextField(value);
-        field.setPrefHeight(34);
+        field.getStyleClass().add("field-input");
 
         box.getChildren().addAll(labelNode, field);
         return box;

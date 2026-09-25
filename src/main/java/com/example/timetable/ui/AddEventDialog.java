@@ -61,15 +61,15 @@ public class AddEventDialog {
 
     private VBox createContent(Stage dialog) {
 
-        VBox box = new VBox(12);
+        VBox box = new VBox(14);
 
-        box.setPadding(new Insets(22));
+        box.setPadding(new Insets(26));
         box.setPrefWidth(390);
 
-        box.getStyleClass().add("dialog");
+        box.getStyleClass().addAll("dialog", "event-dialog");
 
         Label title = new Label("Add new event");
-        title.getStyleClass().add("section-title");
+        title.getStyleClass().addAll("section-title", "card-heading");
 
         // -------------------------
         // EVENT NAME
@@ -170,12 +170,13 @@ public class AddEventDialog {
 
         Button cancel =
                 new Button("Cancel");
+        cancel.getStyleClass().add("secondary-button");
 
         Button save =
                 new Button("Add");
 
         save.getStyleClass().add(
-                "dark-button"
+                "primary-button"
         );
 
         cancel.setOnAction(
@@ -329,9 +330,14 @@ public class AddEventDialog {
         label.getStyleClass().add(
                 "small-label"
         );
+        label.getStyleClass().add("field-label");
+
+        if (!control.getStyleClass().contains("field-input")) {
+            control.getStyleClass().add("field-input");
+        }
 
         return new VBox(
-                5,
+                6,
                 label,
                 control
         );
