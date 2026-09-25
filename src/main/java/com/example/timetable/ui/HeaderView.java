@@ -2,8 +2,11 @@ package com.example.timetable.ui;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.geometry.Side;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
+import javafx.scene.control.MenuItem;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
@@ -13,7 +16,8 @@ public class HeaderView extends HBox {
     public HeaderView(
             Runnable onTimetable,
             Runnable onSettings,
-            Runnable onLogin
+            Runnable onLogin,
+            Runnable onRegister
     ) {
         setSpacing(28);
         setAlignment(Pos.CENTER_LEFT);
@@ -25,8 +29,7 @@ public class HeaderView extends HBox {
 
         Button timetable = navButton("Timetable");
         Button settings = navButton("Settings");
-        Button login = new Button("Login");
-        login.getStyleClass().addAll("dark-button", "primary-button");
+        Button avatar = createAvatarButton(onLogin, onRegister);
 
         setActiveTab(timetable, settings);
 
@@ -38,12 +41,11 @@ public class HeaderView extends HBox {
             setActiveTab(settings, timetable);
             onSettings.run();
         });
-        login.setOnAction(e -> onLogin.run());
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        getChildren().addAll(logo, timetable, settings, spacer, login);
+        getChildren().addAll(logo, timetable, settings, spacer, avatar);
     }
 
     private Button navButton(String text) {
@@ -58,6 +60,34 @@ public class HeaderView extends HBox {
         if (!active.getStyleClass().contains("active")) {
             active.getStyleClass().add("active");
         }
+    }
+
+    private Button createAvatarButton(Runnable onLogin, Runnable onRegister) {
+        Button avatar = new Button("ST");
+        avatar.getStyleClass().add("avatar-button");
+
+        ContextMenu profileMenu = new ContextMenu();
+        profileMenu.getStyleClass().add("profile-menu");
+        profileMenu.setAutoHide(true);
+
+        MenuItem login = new MenuItem("Log in");
+        MenuItem register = new MenuItem("Register");
+        login.getStyleClass().add("profile-menu-item");
+        register.getStyleClass().add("profile-menu-item");
+
+        login.setOnAction(e -> onLogin.run());
+        register.setOnAction(e -> onRegister.run());
+        profileMenu.getItems().addAll(login, register);
+
+        avatar.setOnAction(e -> {
+            if (profileMenu.isShowing()) {
+                profileMenu.hide();
+            } else {
+                profileMenu.show(avatar, Side.BOTTOM, -112, 8);
+            }
+        });
+
+        return avatar;
     }
 }
 
