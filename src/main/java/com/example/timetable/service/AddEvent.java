@@ -2,6 +2,9 @@ package com.example.timetable.service;
 import com.example.timetable.model.Event;
 import com.example.timetable.repository.eventRepository;
 
+import java.time.LocalDate;
+import java.util.List;
+
 public class AddEvent {
 
     private final eventRepository eventRepository;
@@ -21,5 +24,9 @@ public class AddEvent {
         }
 
         return eventRepository.saveEvent(event);
+    }
+
+    public List<Event> getEventsBetween(LocalDate startDate, LocalDate endDate) {
+        return eventRepository.findEventsBetween(startDate, endDate);
     }
 }
