@@ -1,7 +1,10 @@
 package com.example.timetable;
 
 import com.example.timetable.repository.eventRepository;
+import com.example.timetable.repository.loginRepository;
+import com.example.timetable.repository.register;
 import com.example.timetable.service.AddEvent;
+import com.example.timetable.service.RegisterUser;
 import com.example.timetable.ui.HeaderView;
 import com.example.timetable.ui.LandingView;
 import com.example.timetable.ui.LoginView;
@@ -23,6 +26,9 @@ public class Main extends Application {
     private final BorderPane root = new BorderPane();
     private final StackPane content = new StackPane();
     private AddEvent addEventService;
+    private RegisterUser registerUserService;
+    private loginRepository loginRepository;
+    private String loggedInUserName;
     private Scene scene;
 
     @Override
@@ -32,7 +38,7 @@ public class Main extends Application {
         try {
         // Create database connection
         Connection connection = DriverManager.getConnection(
-                "jdbc:mariadb://localhost:3306/student_timetable",
+                "jdbc:mariadb://localhost:3307/student_timetable",
                 "student",
                 "student"
         );
@@ -40,6 +46,9 @@ public class Main extends Application {
             // Create repository
             eventRepository repository =
                     new eventRepository(connection);
+
+                loginRepository = new loginRepository(connection);
+                registerUserService = new RegisterUser(new register(connection));
 
             // Create service
             addEventService =
@@ -83,8 +92,10 @@ public class Main extends Application {
     private void showLogin() {
         scene.setRoot(
                 new LoginView(
+                        loginRepository,
                         this::showRegister,
-                        this::showApplication
+                        this::showLanding,
+                        this::handleLoginSuccess
                 )
         );
     }
@@ -92,10 +103,26 @@ public class Main extends Application {
     private void showRegister() {
         scene.setRoot(
                 new RegisterView(
+                    registerUserService,
                         this::showLogin,
                         this::showApplication
                 )
         );
+    }
+
+    private void handleLoginSuccess(String email) {
+        if (loginRepository != null) {
+            String username = loginRepository.getUserNameByEmail(email);
+            loggedInUserName = username != null && !username.isBlank() ? username : email;
+        } else {
+            loggedInUserName = email;
+        }
+        showApplication();
+    }
+
+    private void logout() {
+        loggedInUserName = null;
+        showLanding();
     }
 
     private void showApplication() {
@@ -103,7 +130,9 @@ public class Main extends Application {
                 this::showTimetable,
                 this::showSettings,
                 this::showLogin,
-                this::showRegister
+                this::showRegister,
+                loggedInUserName,
+                this::logout
         );
 
         if (!root.getStyleClass().contains("app")) {
