@@ -1,4 +1,4 @@
-CREATE DATABASE student_timetable;
+CREATE DATABASE IF NOT EXISTS student_timetable;
 
 USE student_timetable;
 
