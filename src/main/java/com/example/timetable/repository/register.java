@@ -15,7 +15,7 @@ public class register {
         this.connection = connection;
     }
 
-    public boolean registerUser(User user) {
+    public boolean registerUser(User user) throws SQLException {
         String sql = "INSERT INTO student_timetable.users (username, email ,password_hash) VALUES (?, ?, ?)";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -25,9 +25,6 @@ public class register {
             statement.setString(3, hashedPassword);
             statement.executeUpdate();
             return true;
-        } catch (SQLException e) {
-            System.err.println("Error registering user: " + e.getMessage());
-            return false;
         }
 
     }

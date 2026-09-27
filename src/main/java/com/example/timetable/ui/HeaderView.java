@@ -17,7 +17,9 @@ public class HeaderView extends HBox {
             Runnable onTimetable,
             Runnable onSettings,
             Runnable onLogin,
-            Runnable onRegister
+            Runnable onRegister,
+            String currentUserName,
+            Runnable onLogout
     ) {
         setSpacing(28);
         setAlignment(Pos.CENTER_LEFT);
@@ -29,7 +31,15 @@ public class HeaderView extends HBox {
 
         Button timetable = navButton("Timetable");
         Button settings = navButton("Settings");
-        Button avatar = createAvatarButton(onLogin, onRegister);
+
+        Label userStatus = new Label(
+                currentUserName != null && !currentUserName.isBlank()
+                        ? "Logged in: " + currentUserName
+                        : "Not logged in"
+        );
+        userStatus.getStyleClass().add("user-status");
+
+        Button avatar = createAvatarButton(currentUserName, onLogin, onRegister, onLogout);
 
         setActiveTab(timetable, settings);
 
@@ -45,7 +55,7 @@ public class HeaderView extends HBox {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        getChildren().addAll(logo, timetable, settings, spacer, avatar);
+        getChildren().addAll(logo, timetable, settings, spacer, userStatus, avatar);
     }
 
     private Button navButton(String text) {
@@ -62,22 +72,33 @@ public class HeaderView extends HBox {
         }
     }
 
-    private Button createAvatarButton(Runnable onLogin, Runnable onRegister) {
-        Button avatar = new Button("ST");
+    private Button createAvatarButton(String currentUserName, Runnable onLogin, Runnable onRegister, Runnable onLogout) {
+        String avatarText = currentUserName != null && !currentUserName.isBlank()
+                ? currentUserName.substring(0, 1).toUpperCase()
+                : "ST";
+
+        Button avatar = new Button(avatarText);
         avatar.getStyleClass().add("avatar-button");
 
         ContextMenu profileMenu = new ContextMenu();
         profileMenu.getStyleClass().add("profile-menu");
         profileMenu.setAutoHide(true);
 
-        MenuItem login = new MenuItem("Log in");
-        MenuItem register = new MenuItem("Register");
-        login.getStyleClass().add("profile-menu-item");
-        register.getStyleClass().add("profile-menu-item");
+        if (currentUserName != null && !currentUserName.isBlank()) {
+            MenuItem logout = new MenuItem("Log out");
+            logout.getStyleClass().add("profile-menu-item");
+            logout.setOnAction(e -> onLogout.run());
+            profileMenu.getItems().add(logout);
+        } else {
+            MenuItem login = new MenuItem("Log in");
+            MenuItem register = new MenuItem("Register");
+            login.getStyleClass().add("profile-menu-item");
+            register.getStyleClass().add("profile-menu-item");
 
-        login.setOnAction(e -> onLogin.run());
-        register.setOnAction(e -> onRegister.run());
-        profileMenu.getItems().addAll(login, register);
+            login.setOnAction(e -> onLogin.run());
+            register.setOnAction(e -> onRegister.run());
+            profileMenu.getItems().addAll(login, register);
+        }
 
         avatar.setOnAction(e -> {
             if (profileMenu.isShowing()) {

@@ -1,23 +1,28 @@
 package com.example.timetable.ui;
 
+import com.example.timetable.repository.loginRepository;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import java.util.function.Consumer;
 
 public class LoginView extends StackPane {
 
     public LoginView(
+            loginRepository loginRepository,
             Runnable onRegister,
-            Runnable onSkip
+            Runnable onClose,
+            Consumer<String> onLoginSuccess
     ) {
         getStyleClass().add("auth-screen");
 
-        Button close = closeButton(onSkip);
+        Button close = closeButton(onClose);
         StackPane.setAlignment(close, Pos.TOP_RIGHT);
         StackPane.setMargin(close, new Insets(18, 22, 0, 0));
 
@@ -42,7 +47,22 @@ public class LoginView extends StackPane {
         Button submit = new Button("Log In");
         submit.getStyleClass().add("primary-button");
         submit.setMaxWidth(Double.MAX_VALUE);
-        submit.setOnAction(e -> System.out.println("Login placeholder"));
+        submit.setOnAction(e -> {
+            String emailValue = email.getText().trim();
+            String passwordValue = password.getText();
+
+            if (emailValue.isEmpty() || passwordValue.isEmpty()) {
+                showMessage(Alert.AlertType.WARNING, "Missing details", "Enter your email and password.");
+                return;
+            }
+
+            if (loginRepository == null || !loginRepository.loginUser(emailValue, passwordValue)) {
+                showMessage(Alert.AlertType.ERROR, "Login failed", "Check your email, password, and MariaDB connection.");
+                return;
+            }
+
+            onLoginSuccess.accept(emailValue);
+        });
 
         Button switchToRegister = new Button("Don't have an account? Register");
         switchToRegister.getStyleClass().add("link-button");
@@ -64,6 +84,14 @@ public class LoginView extends StackPane {
         label.getStyleClass().add("field-label");
 
         return new VBox(5, label, input);
+    }
+
+    private void showMessage(Alert.AlertType type, String title, String message) {
+        Alert alert = new Alert(type);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
     }
 
     private Button closeButton(Runnable onSkip) {
