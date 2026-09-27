@@ -2,6 +2,7 @@
 !**/src/main/**/target/
 !**/src/test/**/target/
 .kotlin
+/target/site
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
@@ -43,3 +44,6 @@ build/
 /target/surefire-reports/
 /target/test-classes/
 /target/jacoco.exec
+/target/site/
+/target/*
+/target/site/jacoco/
