@@ -12,7 +12,7 @@ public class registerTest {
     public static void main(String[] args) {
         try {
             Connection connection = DriverManager.getConnection(
-                    "jdbc:mariadb://localhost:3307/student_timetable",
+                    "jdbc:mariadb://localhost:3306/student_timetable",
                     "student",
                     "student"
             );

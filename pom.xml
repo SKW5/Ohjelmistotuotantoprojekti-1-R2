@@ -17,7 +17,7 @@
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
-            <version>21.0.6</version>            notepad "C:\ProgramData\MySQL\MySQL Server 8.0\my.ini"
+            <version>21.0.6</version>
         </dependency>
         <dependency>
             <groupId>org.junit.jupiter</groupId>
