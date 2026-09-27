@@ -3,8 +3,7 @@ pipeline {
 	stages {
 		stage('Checkout') {
 			steps {
-				git branch: 'main'
-				git 'https://github.com/SKW5/Ohjelmistotuotantoprojekti-1-R2'
+				git branch: 'main', url: 'https://github.com/SKW5/Ohjelmistotuotantoprojekti-1-R2'
 			}
 		}
 		stage('Build') {
