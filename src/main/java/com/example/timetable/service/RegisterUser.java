@@ -2,6 +2,7 @@ package com.example.timetable.service;
 
 import com.example.timetable.model.User;
 import com.example.timetable.repository.register;
+import java.sql.SQLException;
 
 public class RegisterUser {
 
@@ -11,7 +12,7 @@ public class RegisterUser {
         this.register = register;
     }
 
-    public boolean registerUser(User user) {
+    public boolean registerUser(User user) throws SQLException {
         if (user.getUsername() == null || user.getUsername().isEmpty()) {
             System.err.println("Username cannot be empty.");
             return false;
