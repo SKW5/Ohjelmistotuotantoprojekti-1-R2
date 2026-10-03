@@ -18,6 +18,11 @@ final class FxTestSupport {
 
     static synchronized void startToolkit() throws Exception {
         if (started) return;
+        if (System.getenv("DISPLAY") == null || System.getenv("DISPLAY").isBlank()) {
+            System.setProperty("glass.platform", "Monocle");
+            System.setProperty("monocle.platform", "Headless");
+            System.setProperty("prism.order", "sw");
+        }
         CountDownLatch ready = new CountDownLatch(1);
         try {
             Platform.startup(ready::countDown);
