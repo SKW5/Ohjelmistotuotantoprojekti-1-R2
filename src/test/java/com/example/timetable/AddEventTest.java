@@ -54,7 +54,7 @@ class AddEventTest {
 
     private static Event event(String title) {
         return new Event(0, title, LocalTime.of(10, 0), LocalTime.of(11, 0),
-                LocalDate.of(2026, 1, 2), "Room 1", 1);
+                LocalDate.of(2026, 1, 2), "Room 1");
     }
 
     private static class TrackingEventRepository extends eventRepository {
