@@ -20,6 +20,7 @@ import javafx.stage.Stage;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.SQLException;
 
 public class Main extends Application {
 
@@ -37,19 +38,15 @@ public class Main extends Application {
         loadFonts();
 
         try {
-        // Create database connection
-        Connection connection = DriverManager.getConnection(
-                System.getenv().getOrDefault("DB_URL", "jdbc:mariadb://localhost:3306/student_timetable"),
-                System.getenv().getOrDefault("DB_USER", "student"),
-                System.getenv().getOrDefault("DB_PASSWORD", "student")
-        );
+            // Create database connection
+            Connection connection = openDatabaseConnection();
 
             // Create repository
             eventRepository repository =
                     new eventRepository(connection);
 
-                loginRepository = new loginRepository(connection);
-                registerUserService = new RegisterUser(new register(connection));
+            loginRepository = new loginRepository(connection);
+            registerUserService = new RegisterUser(new register(connection));
 
             // Create service
             addEventService =
@@ -71,6 +68,14 @@ public class Main extends Application {
 
         showLanding();
         stage.show();
+    }
+
+    protected Connection openDatabaseConnection() throws SQLException {
+        return DriverManager.getConnection(
+                System.getenv().getOrDefault("DB_URL", "jdbc:mariadb://localhost:3306/student_timetable"),
+                System.getenv().getOrDefault("DB_USER", "student"),
+                System.getenv().getOrDefault("DB_PASSWORD", "student")
+        );
     }
 
     private void loadFonts() {

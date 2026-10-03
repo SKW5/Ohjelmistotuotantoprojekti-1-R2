@@ -1,6 +1,7 @@
 package com.example.timetable.ui;
 
 import com.example.timetable.model.Event;
+import com.example.timetable.Main;
 import com.example.timetable.repository.eventRepository;
 import com.example.timetable.repository.loginRepository;
 import com.example.timetable.service.AddEvent;
@@ -12,6 +13,8 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.junit.jupiter.api.AfterAll;
@@ -20,6 +23,10 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.sql.Connection;
+import java.sql.SQLException;
+import java.io.ByteArrayOutputStream;
+import java.io.PrintStream;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
@@ -221,5 +228,66 @@ class UserInterfaceTest {
         assertEquals(LocalTime.of(10, 0), savedEvent.get().getEnd_time());
         assertEquals(date, savedEvent.get().getEvent_date());
         assertEquals("Room 5", savedEvent.get().getLocation());
+    }
+
+    @Test
+    void mainStartsWindowAndRoutesBetweenScreensWithoutDatabase() throws Exception {
+        FxTestSupport.onFxThread(() -> {
+            Main application = new Main() {
+                @Override
+                protected Connection openDatabaseConnection() throws SQLException {
+                    throw new SQLException("Database intentionally unavailable in this test");
+                }
+            };
+            Stage stage = new Stage();
+            try {
+                PrintStream previousError = System.err;
+                ByteArrayOutputStream startupError = new ByteArrayOutputStream();
+                try {
+                    System.setErr(new PrintStream(startupError));
+                    application.start(stage);
+                } finally {
+                    System.setErr(previousError);
+                }
+                assertTrue(startupError.toString().contains("Database intentionally unavailable"));
+                assertEquals("Student Timetable", stage.getTitle());
+                assertEquals(950, stage.getMinWidth());
+                assertEquals(600, stage.getMinHeight());
+                assertTrue(stage.isShowing());
+
+                LandingView landing = (LandingView) stage.getScene().getRoot();
+                FxTestSupport.find(landing, Button.class, button -> "Log in".equals(button.getText())).fire();
+                assertTrue(stage.getScene().getRoot() instanceof LoginView);
+                FxTestSupport.find(stage.getScene().getRoot(), Button.class,
+                        button -> "✕".equals(button.getText())).fire();
+                assertTrue(stage.getScene().getRoot() instanceof LandingView);
+
+                landing = (LandingView) stage.getScene().getRoot();
+                FxTestSupport.find(landing, Button.class,
+                        button -> "Register".equals(button.getText())).fire();
+                assertTrue(stage.getScene().getRoot() instanceof RegisterView);
+                FxTestSupport.find(stage.getScene().getRoot(), Button.class,
+                        button -> "✕".equals(button.getText())).fire();
+
+                BorderPane applicationRoot = (BorderPane) stage.getScene().getRoot();
+                HeaderView header = (HeaderView) applicationRoot.getTop();
+                StackPane content = (StackPane) applicationRoot.getCenter();
+                assertTrue(content.getChildren().get(0) instanceof TimetableView);
+
+                FxTestSupport.find(header, Button.class,
+                        button -> "Settings".equals(button.getText())).fire();
+                assertTrue(content.getChildren().get(0) instanceof SettingsView);
+
+                FxTestSupport.find(header, Button.class,
+                        button -> "Timetable".equals(button.getText())).fire();
+                assertTrue(content.getChildren().get(0) instanceof TimetableView);
+                Button addEvent = FxTestSupport.find(content, Button.class,
+                        button -> "+ New event".equals(button.getText()));
+                assertTrue(addEvent.isDisabled());
+            } finally {
+                stage.close();
+            }
+            return null;
+        });
     }
 }

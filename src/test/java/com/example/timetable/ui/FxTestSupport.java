@@ -32,6 +32,7 @@ final class FxTestSupport {
         if (!ready.await(10, TimeUnit.SECONDS)) {
             throw new IllegalStateException("JavaFX toolkit did not start");
         }
+        Platform.setImplicitExit(false);
         started = true;
     }
 
