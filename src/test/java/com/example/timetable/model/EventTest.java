@@ -11,7 +11,7 @@ class EventTest {
     @Test
     void exposesConstructorValuesAndUpdatesMutableFields() {
         Event event = new Event(4, "Lecture", LocalTime.of(9, 0), LocalTime.of(10, 30),
-                LocalDate.of(2026, 9, 27), "Room A", 12);
+                LocalDate.of(2026, 9, 27), "Room A");
 
         assertEquals(4, event.getEvent_id());
         assertEquals("Lecture", event.getTitle());
@@ -19,8 +19,6 @@ class EventTest {
         assertEquals(LocalTime.of(10, 30), event.getEnd_time());
         assertEquals(LocalDate.of(2026, 9, 27), event.getEvent_date());
         assertEquals("Room A", event.getLocation());
-        assertEquals(12, event.getCourse_id());
-
         event.setEvent_id(5);
         event.setTitle("Seminar");
         event.setStart_time(LocalTime.NOON);

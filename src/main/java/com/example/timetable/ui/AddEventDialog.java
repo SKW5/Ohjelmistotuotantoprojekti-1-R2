@@ -30,9 +30,11 @@ public class AddEventDialog {
     };
 
     private final AddEvent addEventService;
+    private final int userId;
 
-    public AddEventDialog(AddEvent addEventService) {
+    public AddEventDialog(AddEvent addEventService, int userId) {
         this.addEventService = addEventService;
+        this.userId = userId;
     }
 
     public void show() {
@@ -247,33 +249,18 @@ public class AddEventDialog {
 
                 endTime.setStyle("");
 
-                /*
-                 * Your Event constructor:
-                 *
-                 * Event(
-                 *     int event_id,
-                 *     String title,
-                 *     LocalTime start_time,
-                 *     LocalTime end_time,
-                 *     LocalDate event_date,
-                 *     String location,
-                 *     int course_id
-                 * )
-                 */
-
                 Event event = new Event(
                         0,
                         eventName,
                         start,
                         end,
                         eventDate,
-                        room.getText().trim(),
-                        0
+                        room.getText().trim()
                 );
 
                 // Send event to backend
                 boolean saved =
-                        addEventService.addEvent(event);
+                        addEventService.addEvent(userId, event);
 
                 if (saved) {
 

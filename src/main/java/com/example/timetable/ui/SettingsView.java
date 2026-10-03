@@ -40,8 +40,7 @@ public class SettingsView extends VBox {
                 "About the profile",
                 "Basic information used by the timetable.",
                 field("Username", "student"),
-                field("Email", "student@example.com"),
-                field("Course", "INSINÖÖRI?")
+                field("Email", "student@example.com")
         );
     }
 

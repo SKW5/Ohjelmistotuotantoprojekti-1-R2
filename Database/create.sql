@@ -9,32 +9,9 @@ CREATE TABLE users (
                        password_hash VARCHAR(255) NOT NULL
 );
 
-CREATE TABLE courses (
-                         course_id INT AUTO_INCREMENT PRIMARY KEY,
-                         course_name VARCHAR(100) NOT NULL,
-                         course_code VARCHAR(20),
-                         color VARCHAR(20) NOT NULL
-);
-
-CREATE TABLE user_courses (
-                              user_id INT NOT NULL,
-                              course_id INT NOT NULL,
-
-                              PRIMARY KEY (user_id, course_id),
-
-                              FOREIGN KEY (user_id)
-                                  REFERENCES users(user_id)
-                                  ON DELETE CASCADE,
-
-                              FOREIGN KEY (course_id)
-                                  REFERENCES courses(course_id)
-                                  ON DELETE CASCADE
-);
-
 CREATE TABLE timetable_events (
                                   event_id INT AUTO_INCREMENT PRIMARY KEY,
                                   user_id INT NOT NULL,
-                                  course_id INT NOT NULL,
 
                                   title VARCHAR(100) NOT NULL,
                                   event_date DATE NOT NULL,
@@ -44,10 +21,6 @@ CREATE TABLE timetable_events (
 
                                   FOREIGN KEY (user_id)
                                       REFERENCES users(user_id)
-                                      ON DELETE CASCADE,
-
-                                  FOREIGN KEY (course_id)
-                                      REFERENCES courses(course_id)
                                       ON DELETE CASCADE
 );
 

@@ -29,6 +29,7 @@ public class Main extends Application {
     private RegisterUser registerUserService;
     private loginRepository loginRepository;
     private String loggedInUserName;
+    private int loggedInUserId;
     private Scene scene;
 
     @Override
@@ -58,7 +59,7 @@ public class Main extends Application {
             e.printStackTrace();
         }
 
-        scene = new Scene(new StackPane(), 1180, 720);
+        scene = new Scene(new StackPane(), 1380, 820);
         scene.getStylesheets().add(
                 getClass().getResource("/styles.css").toExternalForm()
         );
@@ -112,6 +113,7 @@ public class Main extends Application {
 
     private void handleLoginSuccess(String email) {
         if (loginRepository != null) {
+            loggedInUserId = loginRepository.getUserIdByEmail(email);
             String username = loginRepository.getUserNameByEmail(email);
             loggedInUserName = username != null && !username.isBlank() ? username : email;
         } else {
@@ -122,6 +124,7 @@ public class Main extends Application {
 
     private void logout() {
         loggedInUserName = null;
+        loggedInUserId = 0;
         showLanding();
     }
 
@@ -146,7 +149,7 @@ public class Main extends Application {
     }
 
     private void showTimetable() {
-        content.getChildren().setAll(new TimetableView(addEventService));
+        content.getChildren().setAll(new TimetableView(addEventService, loggedInUserId));
     }
 
     private void showSettings() {

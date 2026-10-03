@@ -17,8 +17,8 @@ class AddEventTest {
         TrackingEventRepository repository = new TrackingEventRepository();
         AddEvent service = new AddEvent(repository);
 
-        assertFalse(service.addEvent(event(null)));
-        assertFalse(service.addEvent(event("")));
+        assertFalse(service.addEvent(3, event(null)));
+        assertFalse(service.addEvent(3, event("")));
         assertEquals(0, repository.saveCalls);
     }
 
@@ -29,7 +29,7 @@ class AddEventTest {
         Event event = event("Lecture");
         event.setStart_time(null);
 
-        assertFalse(service.addEvent(event));
+        assertFalse(service.addEvent(3, event));
         assertEquals(0, repository.saveCalls);
     }
 
@@ -38,7 +38,7 @@ class AddEventTest {
         TrackingEventRepository repository = new TrackingEventRepository();
         repository.saveResult = true;
 
-        assertTrue(new AddEvent(repository).addEvent(event("Lecture")));
+        assertTrue(new AddEvent(repository).addEvent(3, event("Lecture")));
         assertEquals(1, repository.saveCalls);
     }
 
@@ -48,7 +48,7 @@ class AddEventTest {
         List<Event> expected = List.of(event("Lecture"));
         repository.events = expected;
 
-        assertSame(expected, new AddEvent(repository).getEventsBetween(
+        assertSame(expected, new AddEvent(repository).getEventsBetween(3,
                 LocalDate.of(2026, 1, 1), LocalDate.of(2026, 1, 8)));
     }
 
@@ -63,7 +63,7 @@ class AddEventTest {
         private List<Event> events = List.of();
 
         TrackingEventRepository() { super(null); }
-        @Override public boolean saveEvent(Event event) { saveCalls++; return saveResult; }
-        @Override public List<Event> findEventsBetween(LocalDate start, LocalDate end) { return events; }
+        @Override public boolean saveEvent(int userId, Event event) { saveCalls++; return saveResult; }
+        @Override public List<Event> findEventsBetween(int userId, LocalDate start, LocalDate end) { return events; }
     }
 }

@@ -29,11 +29,13 @@ public class TimetableView extends VBox {
     };
 
     private final AddEvent addEventService;
+    private final int userId;
     private final ScrollPane calendarScroll = new ScrollPane();
     private static final String[] EVENT_STYLES = {"blue", "green", "yellow", "peach", "purple"};
 
-    public TimetableView(AddEvent addEventService) {
+    public TimetableView(AddEvent addEventService, int userId) {
         this.addEventService = addEventService;
+        this.userId = userId;
 
         setSpacing(24);
         setPadding(new Insets(32));
@@ -67,8 +69,9 @@ public class TimetableView extends VBox {
 
         Button add = new Button("+ New event");
         add.getStyleClass().addAll("dark-button", "primary-button", "new-event-button");
+        add.setDisable(userId <= 0);
         add.setOnAction(e -> {
-            new AddEventDialog(addEventService).show();
+            new AddEventDialog(addEventService, userId).show();
             refreshCalendar();
         });
         titleRow.getChildren().addAll(titleBox, spacer, add);
@@ -143,7 +146,7 @@ public class TimetableView extends VBox {
     private void addDatabaseEvents(GridPane grid) {
         if (addEventService == null) return;
         LocalDate monday = LocalDate.now().with(DayOfWeek.MONDAY);
-        List<Event> events = addEventService.getEventsBetween(monday, monday.plusDays(5));
+        List<Event> events = addEventService.getEventsBetween(userId, monday, monday.plusDays(5));
         DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm");
 
         for (Event event : events) {

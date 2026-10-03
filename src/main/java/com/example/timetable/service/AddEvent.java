@@ -14,7 +14,8 @@ public class AddEvent {
         this.eventRepository = eventRepository;
     }
 
-    public boolean addEvent(Event event) {
+    public boolean addEvent(int userId, Event event) {
+        if (userId <= 0) return false;
         if (event.getTitle() == null || event.getTitle().isEmpty()) {
             System.err.println("Event title cannot be empty.");
             return false;
@@ -23,10 +24,11 @@ public class AddEvent {
             return false;
         }
 
-        return eventRepository.saveEvent(event);
+        return eventRepository.saveEvent(userId, event);
     }
 
-    public List<Event> getEventsBetween(LocalDate startDate, LocalDate endDate) {
-        return eventRepository.findEventsBetween(startDate, endDate);
+    public List<Event> getEventsBetween(int userId, LocalDate startDate, LocalDate endDate) {
+        if (userId <= 0) return List.of();
+        return eventRepository.findEventsBetween(userId, startDate, endDate);
     }
 }

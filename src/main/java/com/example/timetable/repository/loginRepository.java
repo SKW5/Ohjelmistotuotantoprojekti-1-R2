@@ -48,4 +48,17 @@ public class loginRepository {
 
         return null;
     }
+
+    public int getUserIdByEmail(String email) {
+        String sql = "SELECT user_id FROM student_timetable.users WHERE email = ?";
+        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+            statement.setString(1, email);
+            try (ResultSet result = statement.executeQuery()) {
+                return result.next() ? result.getInt("user_id") : 0;
+            }
+        } catch (SQLException e) {
+            System.err.println("Error fetching user ID: " + e.getMessage());
+            return 0;
+        }
+    }
 }
