@@ -56,6 +56,35 @@ class LoginRepositoryTest {
         assertNull(missing.getUserNameByEmail("missing@example.com"));
     }
 
+    @Test
+    void userIdLookupReturnsIdOrZero() {
+        AtomicReference<String> queriedEmail = new AtomicReference<>();
+        loginRepository found = new loginRepository(connectionForUserId(42, queriedEmail, null));
+        loginRepository missing = new loginRepository(connectionForUserId(null, new AtomicReference<>(), null));
+
+        assertEquals(42, found.getUserIdByEmail("ada@example.com"));
+        assertEquals("ada@example.com", queriedEmail.get());
+        assertEquals(0, missing.getUserIdByEmail("missing@example.com"));
+    }
+
+    @Test
+    void userIdLookupReturnsZeroWhenDatabaseThrows() {
+        loginRepository repository = new loginRepository(connectionForUserId(null, new AtomicReference<>(),
+                new SQLException("connection failed")));
+
+        assertEquals(0, repository.getUserIdByEmail("ada@example.com"));
+    }
+
+    private static Connection connectionForUserId(Integer userId, AtomicReference<String> email,
+                                                  SQLException failure) {
+        ResultSet results = proxy(ResultSet.class, (method, args) -> switch (method) {
+            case "next" -> userId != null;
+            case "getInt" -> userId == null ? 0 : userId;
+            default -> defaultValue(method);
+        });
+        return connectionReturning(results, email, failure);
+    }
+
     private static Connection connectionReturning(ResultSet results, AtomicReference<String> email,
                                                   SQLException failure) {
         PreparedStatement statement = proxy(PreparedStatement.class, (method, args) -> {

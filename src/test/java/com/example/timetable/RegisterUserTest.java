@@ -18,6 +18,7 @@ class RegisterUserTest {
         assertFalse(service.registerUser(new User(null, "a@b.com", "secret")));
         assertFalse(service.registerUser(new User("name", "", "secret")));
         assertFalse(service.registerUser(new User("name", "a@b.com", null)));
+        assertFalse(service.registerUser(new User("name", "a@b.com", "")));
         assertEquals(0, repository.calls);
     }
 
