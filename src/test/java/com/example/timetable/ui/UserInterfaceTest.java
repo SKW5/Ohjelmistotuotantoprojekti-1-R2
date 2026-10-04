@@ -94,8 +94,9 @@ class UserInterfaceTest {
 
     @Test
     void settingsViewShowsProfileAndNotificationControls() throws Exception {
+        AtomicReference<Boolean> remindersEnabled = new AtomicReference<>();
         FxTestSupport.onFxThread(() -> {
-            SettingsView view = new SettingsView();
+            SettingsView view = new SettingsView(null, 0, ignored -> { }, true, remindersEnabled::set);
             List<Label> labels = FxTestSupport.findAll(view, Label.class);
             List<TextField> fields = FxTestSupport.findAll(view, TextField.class);
             assertTrue(labels.stream().anyMatch(label -> "System settings".equals(label.getText())));
@@ -103,14 +104,20 @@ class UserInterfaceTest {
             assertTrue(labels.stream().anyMatch(label -> "Email".equals(label.getText())));
             assertTrue(labels.stream().anyMatch(label -> "Major".equals(label.getText())));
             assertTrue(labels.stream().anyMatch(label -> "Log in to edit and save your profile.".equals(label.getText())));
-            assertTrue(labels.stream().anyMatch(label -> "Email notifications".equals(label.getText())));
+            assertTrue(labels.stream().anyMatch(label -> "Email notifications (not configured)".equals(label.getText())));
             assertTrue(labels.stream().anyMatch(label -> "Schedule reminders".equals(label.getText())));
             assertEquals(3, fields.size());
             assertTrue(fields.stream().allMatch(TextField::isDisabled));
             assertTrue(FxTestSupport.find(view, Button.class, button -> "Save".equals(button.getText())).isDisabled());
+            List<CheckBox> checkboxes = FxTestSupport.findAll(view, CheckBox.class);
+            assertEquals(2, checkboxes.size());
+            assertTrue(checkboxes.get(0).isDisabled());
+            assertTrue(checkboxes.get(1).isSelected());
+            checkboxes.get(1).fire();
             assertFalse(labels.stream().anyMatch(label -> "Course".equals(label.getText())));
             return null;
         });
+        assertEquals(Boolean.FALSE, remindersEnabled.get());
     }
 
     @Test

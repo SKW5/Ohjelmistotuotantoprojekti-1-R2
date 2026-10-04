@@ -24,6 +24,8 @@ public class SettingsView extends VBox {
     private final profileRepository profileRepository;
     private final int loggedInUserId;
     private final Consumer<UserProfile> onProfileSaved;
+    private final boolean scheduleRemindersEnabled;
+    private final Consumer<Boolean> onScheduleRemindersChanged;
     private TextField usernameField;
     private TextField emailField;
     private TextField majorField;
@@ -31,7 +33,7 @@ public class SettingsView extends VBox {
     private Label profileMessage;
 
     public SettingsView() {
-        this(null, 0, ignored -> { });
+        this(null, 0, ignored -> { }, true, ignored -> { });
     }
 
     public SettingsView(
@@ -39,9 +41,21 @@ public class SettingsView extends VBox {
             int loggedInUserId,
             Consumer<UserProfile> onProfileSaved
     ) {
+        this(profileRepository, loggedInUserId, onProfileSaved, true, ignored -> { });
+    }
+
+    public SettingsView(
+            profileRepository profileRepository,
+            int loggedInUserId,
+            Consumer<UserProfile> onProfileSaved,
+            boolean scheduleRemindersEnabled,
+            Consumer<Boolean> onScheduleRemindersChanged
+    ) {
         this.profileRepository = profileRepository;
         this.loggedInUserId = loggedInUserId;
         this.onProfileSaved = onProfileSaved;
+        this.scheduleRemindersEnabled = scheduleRemindersEnabled;
+        this.onScheduleRemindersChanged = onScheduleRemindersChanged;
 
         setSpacing(24);
         setPadding(new Insets(32));
@@ -102,8 +116,8 @@ public class SettingsView extends VBox {
         return createSettingsCard(
                 "Notification settings",
                 "Choose how you want to be notified.",
-                toggleRow("Email notifications", true),
-                toggleRow("Schedule reminders", true)
+                toggleRow("Email notifications (not configured)", false, ignored -> { }, true),
+                toggleRow("Schedule reminders", scheduleRemindersEnabled, onScheduleRemindersChanged, false)
         );
     }
 
@@ -300,6 +314,15 @@ public class SettingsView extends VBox {
     }
 
     private HBox toggleRow(String text, boolean selected) {
+        return toggleRow(text, selected, ignored -> { }, true);
+        }
+
+        private HBox toggleRow(
+            String text,
+            boolean selected,
+            Consumer<Boolean> onChanged,
+            boolean disabled
+        ) {
         HBox row = new HBox(10);
         row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
@@ -310,6 +333,8 @@ public class SettingsView extends VBox {
 
         CheckBox check = new CheckBox();
         check.setSelected(selected);
+        check.setDisable(disabled);
+        check.setOnAction(event -> onChanged.accept(check.isSelected()));
 
         row.getChildren().addAll(label, spacer, check);
         return row;
