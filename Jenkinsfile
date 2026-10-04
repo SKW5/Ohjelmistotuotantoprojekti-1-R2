@@ -5,7 +5,7 @@ pipeline {
 	}
 	tools {
 		jdk 'JDK 21'
-		maven 'Maven 3.9'
+		maven 'Maven'
 	}
 	stages {
 		stage('Checkout') {
