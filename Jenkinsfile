@@ -35,7 +35,7 @@ pipeline {
 		}
 		stage('Publish Coverage Report') {
 			steps {
-				jacoco()
+				archiveArtifacts artifacts: 'target/site/jacoco/**', fingerprint: true
 			}
 		}
 	}
