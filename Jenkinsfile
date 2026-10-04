@@ -1,21 +1,14 @@
 pipeline {
 	agent any
-	options {
-		skipDefaultCheckout(true)
-	}
-	tools {
-		jdk 'JDK 21'
-		maven 'Maven'
-	}
 	stages {
 		stage('Checkout') {
 			steps {
-				checkout scm
+				git branch: 'main', url: 'https://github.com/SKW5/Ohjelmistotuotantoprojekti-1-R2'
 			}
 		}
 		stage('Build') {
 			steps {
-				sh 'mvn clean install'
+				sh 'mvn clean install' // sh for linux and ios
 			}
 		}
 		stage('Test') {
@@ -35,7 +28,7 @@ pipeline {
 		}
 		stage('Publish Coverage Report') {
 			steps {
-				archiveArtifacts artifacts: 'target/site/jacoco/**', fingerprint: true
+				jacoco()
 			}
 		}
 	}
