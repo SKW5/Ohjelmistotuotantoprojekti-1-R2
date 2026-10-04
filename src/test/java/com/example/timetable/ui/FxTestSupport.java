@@ -18,11 +18,12 @@ final class FxTestSupport {
 
     static synchronized void startToolkit() throws Exception {
         if (started) return;
-        if (System.getenv("DISPLAY") == null || System.getenv("DISPLAY").isBlank()) {
-            System.setProperty("glass.platform", "Monocle");
-            System.setProperty("monocle.platform", "Headless");
-            System.setProperty("prism.order", "sw");
-        }
+        // Tests run without a dependable display server; use Monocle consistently,
+        // even when DISPLAY is set to an unavailable server.
+        System.setProperty("glass.platform", "Monocle");
+        System.setProperty("monocle.platform", "Headless");
+        System.setProperty("prism.order", "sw");
+        System.setProperty("javafx.cachedir", System.getProperty("java.io.tmpdir") + "/openjfx-cache");
         CountDownLatch ready = new CountDownLatch(1);
         try {
             Platform.startup(ready::countDown);
