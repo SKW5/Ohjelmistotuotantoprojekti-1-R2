@@ -106,9 +106,7 @@ public class AddEventDialog {
         Label title = new Label(editMode ? "Edit event" : "Add new event");
         title.getStyleClass().addAll("section-title", "card-heading");
 
-        // -------------------------
         // EVENT NAME
-        // -------------------------
 
         TextField name = new TextField();
         name.setPromptText("Event name");
@@ -116,19 +114,13 @@ public class AddEventDialog {
             name.setText(eventToEdit.getTitle());
         }
 
-        // -------------------------
         // DATE
-        // -------------------------
 
         DatePicker datePicker = new DatePicker();
 
         datePicker.setValue(
                 editMode ? eventToEdit.getEvent_date() : LocalDate.now()
         );
-
-        // -------------------------
-        // START TIME
-        // -------------------------
 
         ComboBox<String> startTime =
                 new ComboBox<>(
@@ -140,9 +132,9 @@ public class AddEventDialog {
             startTime.setValue(eventToEdit.getStart_time().format(TIME_FORMAT));
         }
 
-        // -------------------------
+
         // END TIME
-        // -------------------------
+
 
         ComboBox<String> endTime =
                 new ComboBox<>(
@@ -154,9 +146,9 @@ public class AddEventDialog {
             endTime.setValue(eventToEdit.getEnd_time().format(TIME_FORMAT));
         }
 
-        // -------------------------
+
         // LOCATION
-        // -------------------------
+
 
         TextField room = new TextField();
 
@@ -167,9 +159,7 @@ public class AddEventDialog {
             room.setText(eventToEdit.getLocation());
         }
 
-        // -------------------------
         // COLOR
-        // -------------------------
 
         ComboBox<String> color =
                 new ComboBox<>(
@@ -181,9 +171,8 @@ public class AddEventDialog {
             color.setValue(displayColor(eventToEdit.getColor()));
         }
 
-        // -------------------------
+
         // LABELLED CONTROLS
-        // -------------------------
 
         VBox nameBox =
                 labeled("Event", name);
@@ -207,9 +196,9 @@ public class AddEventDialog {
         message.getStyleClass().add("status-error");
         message.setWrapText(true);
 
-        // -------------------------
+
         // BUTTONS
-        // -------------------------
+
 
         HBox buttons = new HBox(8);
 
@@ -232,9 +221,9 @@ public class AddEventDialog {
                 e -> dialog.close()
         );
 
-        // -------------------------
+
         // SAVE EVENT
-        // -------------------------
+
 
         save.setOnAction(e -> {
 
