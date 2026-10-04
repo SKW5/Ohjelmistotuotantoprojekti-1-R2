@@ -134,6 +134,14 @@
     -fx-font-size: 12px;
 }
 
+.status-error {
+    -fx-text-fill: #b3261e;
+}
+
+.status-success {
+    -fx-text-fill: #2f6f3e;
+}
+
 .small-label,
 .field-label,
 .day-short {

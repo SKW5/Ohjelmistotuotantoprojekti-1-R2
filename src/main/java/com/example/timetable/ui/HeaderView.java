@@ -12,6 +12,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 
 public class HeaderView extends HBox {
+    private final Label userStatus;
+    private final Button avatar;
 
     public HeaderView(
             Runnable onTimetable,
@@ -32,14 +34,14 @@ public class HeaderView extends HBox {
         Button timetable = navButton("Timetable");
         Button settings = navButton("Settings");
 
-        Label userStatus = new Label(
+        userStatus = new Label(
                 currentUserName != null && !currentUserName.isBlank()
                         ? "Logged in: " + currentUserName
                         : "Not logged in"
         );
         userStatus.getStyleClass().add("user-status");
 
-        Button avatar = createAvatarButton(currentUserName, onLogin, onRegister, onLogout);
+        avatar = createAvatarButton(currentUserName, onLogin, onRegister, onLogout);
 
         setActiveTab(timetable, settings);
 
@@ -56,6 +58,17 @@ public class HeaderView extends HBox {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         getChildren().addAll(logo, timetable, settings, spacer, userStatus, avatar);
+    }
+
+    public void updateCurrentUserName(String currentUserName) {
+        userStatus.setText(
+                currentUserName != null && !currentUserName.isBlank()
+                        ? "Logged in: " + currentUserName
+                        : "Not logged in"
+        );
+        avatar.setText(currentUserName != null && !currentUserName.isBlank()
+                ? currentUserName.substring(0, 1).toUpperCase()
+                : "ST");
     }
 
     private Button navButton(String text) {

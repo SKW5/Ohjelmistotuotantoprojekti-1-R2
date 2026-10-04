@@ -2,9 +2,11 @@ package com.example.timetable;
 
 import com.example.timetable.repository.eventRepository;
 import com.example.timetable.repository.loginRepository;
+import com.example.timetable.repository.profileRepository;
 import com.example.timetable.repository.register;
 import com.example.timetable.service.AddEvent;
 import com.example.timetable.service.RegisterUser;
+import com.example.timetable.model.UserProfile;
 import com.example.timetable.ui.HeaderView;
 import com.example.timetable.ui.LandingView;
 import com.example.timetable.ui.LoginView;
@@ -29,13 +31,18 @@ public class Main extends Application {
     private AddEvent addEventService;
     private RegisterUser registerUserService;
     private loginRepository loginRepository;
+    private profileRepository profileRepository;
+    private HeaderView header;
     private String loggedInUserName;
+    private String loggedInUserEmail;
+    private UserProfile loggedInUserProfile;
     private int loggedInUserId;
     private Scene scene;
 
     @Override
     public void start(Stage stage) {
         loadFonts();
+        profileRepository = new profileRepository(this::openDatabaseConnection);
 
         try {
             // Create database connection
@@ -117,24 +124,29 @@ public class Main extends Application {
     }
 
     private void handleLoginSuccess(String email) {
+        loggedInUserEmail = email;
         if (loginRepository != null) {
             loggedInUserId = loginRepository.getUserIdByEmail(email);
             String username = loginRepository.getUserNameByEmail(email);
             loggedInUserName = username != null && !username.isBlank() ? username : email;
+            loggedInUserProfile = new UserProfile(loggedInUserId, loggedInUserName, email, null);
         } else {
             loggedInUserName = email;
+            loggedInUserProfile = null;
         }
         showApplication();
     }
 
     private void logout() {
         loggedInUserName = null;
+        loggedInUserEmail = null;
+        loggedInUserProfile = null;
         loggedInUserId = 0;
         showLanding();
     }
 
     private void showApplication() {
-        HeaderView header = new HeaderView(
+        header = new HeaderView(
                 this::showTimetable,
                 this::showSettings,
                 this::showLogin,
@@ -158,7 +170,17 @@ public class Main extends Application {
     }
 
     private void showSettings() {
-        content.getChildren().setAll(new SettingsView());
+        content.getChildren().setAll(new SettingsView(profileRepository, loggedInUserId, this::handleProfileSaved));
+    }
+
+    private void handleProfileSaved(UserProfile profile) {
+        loggedInUserId = profile.getUserId();
+        loggedInUserName = profile.getUsername();
+        loggedInUserEmail = profile.getEmail();
+        loggedInUserProfile = profile;
+        if (header != null) {
+            header.updateCurrentUserName(loggedInUserName);
+        }
     }
 
     public static void main(String[] args) {

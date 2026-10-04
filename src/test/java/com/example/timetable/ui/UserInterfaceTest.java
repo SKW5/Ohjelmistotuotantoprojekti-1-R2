@@ -97,12 +97,17 @@ class UserInterfaceTest {
         FxTestSupport.onFxThread(() -> {
             SettingsView view = new SettingsView();
             List<Label> labels = FxTestSupport.findAll(view, Label.class);
+            List<TextField> fields = FxTestSupport.findAll(view, TextField.class);
             assertTrue(labels.stream().anyMatch(label -> "System settings".equals(label.getText())));
             assertTrue(labels.stream().anyMatch(label -> "Username".equals(label.getText())));
             assertTrue(labels.stream().anyMatch(label -> "Email".equals(label.getText())));
             assertTrue(labels.stream().anyMatch(label -> "Major".equals(label.getText())));
+            assertTrue(labels.stream().anyMatch(label -> "Log in to edit and save your profile.".equals(label.getText())));
             assertTrue(labels.stream().anyMatch(label -> "Email notifications".equals(label.getText())));
             assertTrue(labels.stream().anyMatch(label -> "Schedule reminders".equals(label.getText())));
+            assertEquals(3, fields.size());
+            assertTrue(fields.stream().allMatch(TextField::isDisabled));
+            assertTrue(FxTestSupport.find(view, Button.class, button -> "Save".equals(button.getText())).isDisabled());
             assertFalse(labels.stream().anyMatch(label -> "Course".equals(label.getText())));
             return null;
         });
