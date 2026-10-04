@@ -9,10 +9,15 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import java.util.function.Consumer;
 
 public class SettingsView extends VBox {
 
     public SettingsView() {
+        this(true, ignored -> { });
+    }
+
+    public SettingsView(boolean remindersEnabled, Consumer<Boolean> onRemindersChanged) {
         setSpacing(24);
         setPadding(new Insets(32));
 
@@ -28,7 +33,7 @@ public class SettingsView extends VBox {
         cards.setFillHeight(true);
 
         VBox profile = createProfileCard();
-        VBox notifications = createNotificationCard();
+        VBox notifications = createNotificationCard(remindersEnabled, onRemindersChanged);
 
         cards.getChildren().addAll(profile, notifications);
 
@@ -44,12 +49,12 @@ public class SettingsView extends VBox {
         );
     }
 
-    private VBox createNotificationCard() {
+    private VBox createNotificationCard(boolean remindersEnabled, Consumer<Boolean> onRemindersChanged) {
         return createSettingsCard(
                 "Notification settings",
                 "Choose how you want to be notified.",
-                toggleRow("Email notifications", true),
-                toggleRow("Schedule reminders", true)
+                toggleRow("Email notifications", true, ignored -> { }),
+                toggleRow("Schedule reminders", remindersEnabled, onRemindersChanged)
         );
     }
 
@@ -88,7 +93,7 @@ public class SettingsView extends VBox {
         return box;
     }
 
-    private HBox toggleRow(String text, boolean selected) {
+    private HBox toggleRow(String text, boolean selected, Consumer<Boolean> onChanged) {
         HBox row = new HBox(10);
         row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
@@ -99,6 +104,8 @@ public class SettingsView extends VBox {
 
         CheckBox check = new CheckBox();
         check.setSelected(selected);
+        check.setAccessibleText(text);
+        check.setOnAction(event -> onChanged.accept(check.isSelected()));
 
         row.getChildren().addAll(label, spacer, check);
         return row;

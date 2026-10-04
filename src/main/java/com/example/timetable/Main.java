@@ -4,6 +4,7 @@ import com.example.timetable.repository.eventRepository;
 import com.example.timetable.repository.loginRepository;
 import com.example.timetable.repository.register;
 import com.example.timetable.service.AddEvent;
+import com.example.timetable.service.EventReminderService;
 import com.example.timetable.service.RegisterUser;
 import com.example.timetable.ui.HeaderView;
 import com.example.timetable.ui.LandingView;
@@ -12,21 +13,30 @@ import com.example.timetable.ui.RegisterView;
 import com.example.timetable.ui.SettingsView;
 import com.example.timetable.ui.TimetableView;
 import javafx.application.Application;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
+import javafx.scene.control.Alert;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 public class Main extends Application {
 
     private final BorderPane root = new BorderPane();
     private final StackPane content = new StackPane();
     private AddEvent addEventService;
+    private EventReminderService eventReminderService;
+    private Timeline reminderTimeline;
+    private boolean scheduleRemindersEnabled = true;
     private RegisterUser registerUserService;
     private loginRepository loginRepository;
     private String loggedInUserName;
@@ -51,6 +61,7 @@ public class Main extends Application {
             // Create service
             addEventService =
                     new AddEvent(repository);
+                eventReminderService = new EventReminderService(addEventService, this::showEventReminder);
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -68,6 +79,10 @@ public class Main extends Application {
 
         showLanding();
         stage.show();
+        reminderTimeline = new Timeline(new KeyFrame(Duration.minutes(1), event -> checkEventReminders()));
+        reminderTimeline.setCycleCount(Timeline.INDEFINITE);
+        reminderTimeline.play();
+        stage.setOnHidden(event -> reminderTimeline.stop());
     }
 
     protected Connection openDatabaseConnection() throws SQLException {
@@ -151,6 +166,7 @@ public class Main extends Application {
 
         showTimetable();
         scene.setRoot(root);
+        checkEventReminders();
     }
 
     private void showTimetable() {
@@ -158,7 +174,26 @@ public class Main extends Application {
     }
 
     private void showSettings() {
-        content.getChildren().setAll(new SettingsView());
+        content.getChildren().setAll(new SettingsView(scheduleRemindersEnabled, enabled -> {
+            scheduleRemindersEnabled = enabled;
+            checkEventReminders();
+        }));
+    }
+
+    private void checkEventReminders() {
+        if (scheduleRemindersEnabled && eventReminderService != null) {
+            eventReminderService.checkUpcomingEvents(loggedInUserId, LocalDateTime.now());
+        }
+    }
+
+    private void showEventReminder(com.example.timetable.model.Event event) {
+        Alert reminder = new Alert(Alert.AlertType.INFORMATION);
+        reminder.setTitle("Upcoming event");
+        reminder.setHeaderText(event.getTitle());
+        reminder.setContentText("Starts at " + event.getStart_time().format(DateTimeFormatter.ofPattern("HH:mm"))
+                + (event.getLocation() == null || event.getLocation().isBlank()
+                ? "" : "\nLocation: " + event.getLocation()));
+        reminder.show();
     }
 
     public static void main(String[] args) {

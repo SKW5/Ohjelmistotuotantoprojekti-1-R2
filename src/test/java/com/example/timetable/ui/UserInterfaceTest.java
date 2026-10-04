@@ -6,6 +6,7 @@ import com.example.timetable.repository.eventRepository;
 import com.example.timetable.repository.loginRepository;
 import com.example.timetable.service.AddEvent;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -94,8 +95,9 @@ class UserInterfaceTest {
 
     @Test
     void settingsViewShowsProfileAndNotificationControls() throws Exception {
+        AtomicReference<Boolean> reminderSetting = new AtomicReference<>();
         FxTestSupport.onFxThread(() -> {
-            SettingsView view = new SettingsView();
+            SettingsView view = new SettingsView(true, reminderSetting::set);
             List<Label> labels = FxTestSupport.findAll(view, Label.class);
             assertTrue(labels.stream().anyMatch(label -> "System settings".equals(label.getText())));
             assertTrue(labels.stream().anyMatch(label -> "Username".equals(label.getText())));
@@ -103,8 +105,13 @@ class UserInterfaceTest {
             assertTrue(labels.stream().anyMatch(label -> "Email notifications".equals(label.getText())));
             assertTrue(labels.stream().anyMatch(label -> "Schedule reminders".equals(label.getText())));
             assertFalse(labels.stream().anyMatch(label -> "Course".equals(label.getText())));
+            CheckBox reminders = FxTestSupport.find(view, CheckBox.class,
+                    check -> "Schedule reminders".equals(check.getAccessibleText()));
+            assertTrue(reminders.isSelected());
+            reminders.fire();
             return null;
         });
+        assertEquals(Boolean.FALSE, reminderSetting.get());
     }
 
     @Test

@@ -92,7 +92,7 @@ public class RegisterView extends StackPane {
             }
 
             showMessage(Alert.AlertType.INFORMATION, "Registration complete", "Your account was created successfully.");
-            onSkip.run();
+            onLogin.run();
         });
 
         Button switchToLogin = new Button("Already have an account? Log in");
