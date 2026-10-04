@@ -1,0 +1,30 @@
+services:
+  database:
+    image: mariadb:11.4
+    environment:
+      MARIADB_DATABASE: student_timetable
+      MARIADB_USER: student
+      MARIADB_PASSWORD: ${DB_PASSWORD:-student}
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-localroot}
+    volumes:
+      - database-data:/var/lib/mysql
+      - ./Database/create.sql:/docker-entrypoint-initdb.d/001-create.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  application:
+    build: .
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      DISPLAY: ${DISPLAY:-host.docker.internal:0.0}
+      DB_URL: jdbc:mariadb://database:3306/student_timetable
+      DB_USER: student
+      DB_PASSWORD: ${DB_PASSWORD:-student}
+
+volumes:
+  database-data:
