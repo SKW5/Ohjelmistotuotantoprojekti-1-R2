@@ -96,11 +96,17 @@ public class TimetableView extends VBox {
     }
 
     private void createColumns(GridPane grid) {
-        grid.getColumnConstraints().add(new ColumnConstraints(70));
+        ColumnConstraints timeColumn = new ColumnConstraints();
+        timeColumn.setMinWidth(60);
+        timeColumn.setPrefWidth(70);
+        timeColumn.setMaxWidth(70);
+        grid.getColumnConstraints().add(timeColumn);
 
         for (int i = 0; i < DAYS.length; i++) {
             ColumnConstraints column = new ColumnConstraints();
-            column.setPercentWidth(18.6);
+            column.setMinWidth(90);
+            column.setHgrow(Priority.ALWAYS);
+            column.setFillWidth(true);
             grid.getColumnConstraints().add(column);
         }
     }
