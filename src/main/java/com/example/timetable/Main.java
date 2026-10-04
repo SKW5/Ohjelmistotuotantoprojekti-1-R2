@@ -87,7 +87,7 @@ public class Main extends Application {
 
     protected Connection openDatabaseConnection() throws SQLException {
         return DriverManager.getConnection(
-                System.getenv().getOrDefault("DB_URL", "jdbc:mariadb://localhost:3306/student_timetable"),
+                System.getenv().getOrDefault("DB_URL", "jdbc:mariadb://localhost:3307/student_timetable"),
                 System.getenv().getOrDefault("DB_USER", "student"),
                 System.getenv().getOrDefault("DB_PASSWORD", "student")
         );
