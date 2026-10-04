@@ -16,12 +16,19 @@ public class eventRepository {
 
     public eventRepository(Connection connection) {
         this.connection = connection;
+        try (PreparedStatement statement = connection.prepareStatement(
+                "ALTER TABLE student_timetable.timetable_events " +
+                        "ADD COLUMN IF NOT EXISTS color VARCHAR(20) NOT NULL DEFAULT 'blue'")) {
+            statement.executeUpdate();
+        } catch (SQLException | RuntimeException e) {
+            System.err.println("Error preparing event colors: " + e.getMessage());
+        }
     }
 
     public boolean saveEvent(int userId, Event event) {
         String sql = """
-                INSERT INTO student_timetable.timetable_events (user_id, title, start_time, end_time, event_date, location)
-                VALUES (?, ?, ?, ?, ?, ?)
+                INSERT INTO student_timetable.timetable_events (user_id, title, start_time, end_time, event_date, location, color)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
         """;
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
@@ -32,6 +39,7 @@ public class eventRepository {
             statement.setTime(4, java.sql.Time.valueOf(event.getEnd_time()));
             statement.setDate(5, java.sql.Date.valueOf(event.getEvent_date()));
             statement.setString(6, event.getLocation());
+            statement.setString(7, event.getColor());
 
             statement.executeUpdate();
 
@@ -44,7 +52,7 @@ public class eventRepository {
 
     public List<Event> findEventsBetween(int userId, LocalDate startDate, LocalDate endDate) {
         String sql = """
-                SELECT event_id, title, start_time, end_time, event_date, location
+                SELECT event_id, title, start_time, end_time, event_date, location, color
                 FROM student_timetable.timetable_events
                 WHERE user_id = ? AND event_date >= ? AND event_date < ?
                 ORDER BY event_date, start_time
@@ -63,7 +71,8 @@ public class eventRepository {
                             result.getTime("start_time").toLocalTime(),
                             result.getTime("end_time").toLocalTime(),
                             result.getDate("event_date").toLocalDate(),
-                            result.getString("location")
+                            result.getString("location"),
+                            result.getString("color")
                     ));
                 }
             }

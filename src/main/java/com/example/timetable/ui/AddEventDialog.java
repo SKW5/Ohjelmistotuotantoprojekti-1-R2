@@ -22,11 +22,17 @@ import java.time.LocalTime;
 
 public class AddEventDialog {
 
-    private static final String[] TIMES = {
-            "08:00", "09:00", "10:00", "11:00",
-            "12:00", "13:00", "14:00", "15:00",
-            "16:00", "17:00", "18:00", "19:00",
-            "20:00", "21:00"
+    private static final String[] START_TIMES = {
+            "00:00", "01:00", "02:00", "03:00", "04:00", "05:00",
+            "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
+            "12:00", "13:00", "14:00", "15:00", "16:00", "17:00",
+            "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"
+    };
+    private static final String[] END_TIMES = {
+            "01:00", "02:00", "03:00", "04:00", "05:00", "06:00",
+            "07:00", "08:00", "09:00", "10:00", "11:00", "12:00",
+            "13:00", "14:00", "15:00", "16:00", "17:00", "18:00",
+            "19:00", "20:00", "21:00", "22:00", "23:00", "23:59"
     };
 
     private final AddEvent addEventService;
@@ -96,7 +102,7 @@ public class AddEventDialog {
 
         ComboBox<String> startTime =
                 new ComboBox<>(
-                        FXCollections.observableArrayList(TIMES)
+                        FXCollections.observableArrayList(START_TIMES)
                 );
 
         startTime.setValue("08:00");
@@ -107,7 +113,7 @@ public class AddEventDialog {
 
         ComboBox<String> endTime =
                 new ComboBox<>(
-                        FXCollections.observableArrayList(TIMES)
+                        FXCollections.observableArrayList(END_TIMES)
                 );
 
         endTime.setValue("09:00");
@@ -255,7 +261,8 @@ public class AddEventDialog {
                         start,
                         end,
                         eventDate,
-                        room.getText().trim()
+                        room.getText().trim(),
+                        color.getValue().toLowerCase(java.util.Locale.ROOT)
                 );
 
                 // Send event to backend

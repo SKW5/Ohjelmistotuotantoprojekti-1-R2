@@ -173,7 +173,7 @@
     -fx-background-color: #f0ece1;
     -fx-border-color: #e2ddd0;
     -fx-border-width: 0 0 1 1;
-    -fx-padding: 9 8;
+    -fx-padding: 6 5;
     -fx-alignment: center;
 }
 
@@ -187,8 +187,8 @@
     -fx-border-color: #ece7db;
     -fx-border-width: 0 1 1 0;
     -fx-text-fill: #9c9689;
-    -fx-font-size: 10px;
-    -fx-padding: 8 8 0 0;
+    -fx-font-size: 9px;
+    -fx-padding: 4 5 0 0;
 }
 
 .calendar-cell {
@@ -214,18 +214,18 @@
 }
 
 .event-name {
-    -fx-font-size: 13px;
+    -fx-font-size: 10px;
     -fx-font-weight: bold;
     -fx-text-fill: #1a1a1a;
 }
 
 .event-time {
-    -fx-font-size: 10px;
+    -fx-font-size: 8px;
     -fx-text-fill: #6b6b63;
 }
 
 .event-room {
-    -fx-font-size: 10px;
+    -fx-font-size: 8px;
     -fx-text-fill: #6b6b63;
 }
 

@@ -24,8 +24,10 @@ public class TimetableView extends VBox {
 
     private static final String[] DAYS = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
     private static final String[] TIMES = {
-            "08:00", "09:00", "10:00", "11:00",
-            "12:00", "13:00", "14:00", "15:00"
+            "00:00", "01:00", "02:00", "03:00", "04:00", "05:00",
+            "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
+            "12:00", "13:00", "14:00", "15:00", "16:00", "17:00",
+            "18:00", "19:00", "20:00", "21:00", "22:00", "23:00"
     };
 
     private final AddEvent addEventService;
@@ -105,7 +107,7 @@ public class TimetableView extends VBox {
 
     private void createRows(GridPane grid) {
         for (int row = 0; row <= TIMES.length; row++) {
-            grid.getRowConstraints().add(new RowConstraints(68));
+            grid.getRowConstraints().add(new RowConstraints(40));
         }
     }
 
@@ -127,6 +129,7 @@ public class TimetableView extends VBox {
         for (int row = 0; row < TIMES.length; row++) {
             Label time = new Label(TIMES[row]);
             time.setAlignment(Pos.TOP_CENTER);
+            time.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
             time.getStyleClass().add("time-label");
             grid.add(time, 0, row + 1);
         }
@@ -146,21 +149,21 @@ public class TimetableView extends VBox {
     private void addDatabaseEvents(GridPane grid) {
         if (addEventService == null) return;
         LocalDate monday = LocalDate.now().with(DayOfWeek.MONDAY);
-        List<Event> events = addEventService.getEventsBetween(userId, monday, monday.plusDays(5));
+        List<Event> events = addEventService.getEventsBetween(userId, monday, monday.plusDays(7));
         DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm");
 
         for (Event event : events) {
             int day = event.getEvent_date().getDayOfWeek().getValue() - 1;
             int startMinutes = event.getStart_time().getHour() * 60 + event.getStart_time().getMinute();
             int endMinutes = event.getEnd_time().getHour() * 60 + event.getEnd_time().getMinute();
-            int firstSlot = (startMinutes - 8 * 60) / 60;
-            int lastSlot = (endMinutes - 8 * 60 + 59) / 60;
+            int firstSlot = startMinutes / 60;
+            int lastSlot = (endMinutes + 59) / 60;
 
             if (day < 0 || day >= DAYS.length || firstSlot < 0 || firstSlot >= TIMES.length) continue;
             int rowSpan = Math.max(1, Math.min(TIMES.length - firstSlot, lastSlot - firstSlot));
             addEvent(grid, day, firstSlot, rowSpan, event.getTitle(),
                     event.getStart_time().format(timeFormat) + "-" + event.getEnd_time().format(timeFormat),
-                    event.getLocation(), EVENT_STYLES[Math.floorMod(event.getEvent_id(), EVENT_STYLES.length)]);
+                    event.getLocation(), event.getColor());
         }
     }
 
@@ -174,8 +177,8 @@ public class TimetableView extends VBox {
             String room,
             String style
     ) {
-        VBox event = new VBox(3);
-        event.setPadding(new Insets(9, 10, 8, 10));
+        VBox event = new VBox(1);
+        event.setPadding(new Insets(3, 5, 3, 5));
         event.getStyleClass().addAll("event", "event-block", "event-" + style);
 
         Label nameLabel = new Label(name);

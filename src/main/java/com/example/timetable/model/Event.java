@@ -10,14 +10,20 @@ public class Event {
     private LocalTime end_time;
     private LocalDate event_date;
     private String location;
+    private String color;
 
     public Event(int event_id, String title, LocalTime start_time, LocalTime end_time, LocalDate event_date, String location) {
+        this(event_id, title, start_time, end_time, event_date, location, "blue");
+    }
+
+    public Event(int event_id, String title, LocalTime start_time, LocalTime end_time, LocalDate event_date, String location, String color) {
         this.event_id = event_id;
         this.title = title;
         this.start_time = start_time;
         this.end_time = end_time;
         this.event_date = event_date;
         this.location = location;
+        setColor(color);
     }
 
     public int getEvent_id() {
@@ -66,6 +72,14 @@ public class Event {
 
     public void setLocation(String location) {
         this.location = location;
+    }
+
+    public String getColor() {
+        return color;
+    }
+
+    public void setColor(String color) {
+        this.color = color == null ? "blue" : color.toLowerCase(java.util.Locale.ROOT);
     }
 
 }

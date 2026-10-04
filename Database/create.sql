@@ -19,6 +19,7 @@ CREATE TABLE timetable_events (
                                   start_time TIME NOT NULL,
                                   end_time TIME NOT NULL,
                                   location VARCHAR(100),
+                                  color VARCHAR(20) NOT NULL DEFAULT 'blue',
 
                                   FOREIGN KEY (user_id)
                                       REFERENCES users(user_id)
