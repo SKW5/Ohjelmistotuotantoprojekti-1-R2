@@ -6,6 +6,7 @@ import com.example.timetable.repository.eventRepository;
 import com.example.timetable.repository.loginRepository;
 import com.example.timetable.service.AddEvent;
 import javafx.scene.control.Button;
+import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
