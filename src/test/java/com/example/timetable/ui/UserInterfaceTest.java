@@ -100,6 +100,7 @@ class UserInterfaceTest {
             assertTrue(labels.stream().anyMatch(label -> "System settings".equals(label.getText())));
             assertTrue(labels.stream().anyMatch(label -> "Username".equals(label.getText())));
             assertTrue(labels.stream().anyMatch(label -> "Email".equals(label.getText())));
+            assertTrue(labels.stream().anyMatch(label -> "Major".equals(label.getText())));
             assertTrue(labels.stream().anyMatch(label -> "Email notifications".equals(label.getText())));
             assertTrue(labels.stream().anyMatch(label -> "Schedule reminders".equals(label.getText())));
             assertFalse(labels.stream().anyMatch(label -> "Course".equals(label.getText())));
