@@ -9,6 +9,7 @@ RUN apt-get update \
         libxi6 \
         libxrender1 \
         libxtst6 \
+        libxxf86vm1 \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

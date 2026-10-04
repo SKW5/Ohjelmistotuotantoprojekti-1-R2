@@ -5,7 +5,9 @@ import com.example.timetable.repository.loginRepository;
 import com.example.timetable.repository.profileRepository;
 import com.example.timetable.repository.register;
 import com.example.timetable.service.AddEvent;
+import com.example.timetable.service.EventReminderService;
 import com.example.timetable.service.RegisterUser;
+import com.example.timetable.model.Event;
 import com.example.timetable.model.UserProfile;
 import com.example.timetable.ui.HeaderView;
 import com.example.timetable.ui.LandingView;
@@ -14,21 +16,29 @@ import com.example.timetable.ui.RegisterView;
 import com.example.timetable.ui.SettingsView;
 import com.example.timetable.ui.TimetableView;
 import javafx.application.Application;
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.text.Font;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 
 public class Main extends Application {
 
     private final BorderPane root = new BorderPane();
     private final StackPane content = new StackPane();
     private AddEvent addEventService;
+    private EventReminderService eventReminderService;
+    private Timeline reminderTimeline;
     private RegisterUser registerUserService;
     private loginRepository loginRepository;
     private profileRepository profileRepository;
@@ -37,6 +47,7 @@ public class Main extends Application {
     private String loggedInUserEmail;
     private UserProfile loggedInUserProfile;
     private int loggedInUserId;
+    private boolean scheduleRemindersEnabled = true;
     private Scene scene;
 
     @Override
@@ -63,6 +74,13 @@ public class Main extends Application {
             e.printStackTrace();
         }
 
+        eventReminderService = new EventReminderService(addEventService, this::showEventReminder);
+        reminderTimeline = new Timeline(new KeyFrame(Duration.seconds(30), event ->
+            eventReminderService.checkUpcomingEvents(loggedInUserId, LocalDateTime.now())
+        ));
+        reminderTimeline.setCycleCount(Animation.INDEFINITE);
+        reminderTimeline.play();
+
         scene = new Scene(new StackPane(), 1380, 820);
         scene.getStylesheets().add(
                 getClass().getResource("/styles.css").toExternalForm()
@@ -83,6 +101,27 @@ public class Main extends Application {
                 System.getenv().getOrDefault("DB_USER", "student"),
                 System.getenv().getOrDefault("DB_PASSWORD", "student")
         );
+    }
+
+    @Override
+    public void stop() {
+        if (reminderTimeline != null) {
+            reminderTimeline.stop();
+        }
+    }
+
+    private void showEventReminder(Event event) {
+        Alert alert = new Alert(Alert.AlertType.INFORMATION);
+        alert.setTitle("Upcoming event");
+        alert.setHeaderText(event.getTitle());
+
+        String location = event.getLocation();
+        String content = "Starts at " + event.getStart_time();
+        if (location != null && !location.isBlank()) {
+            content += "\nLocation: " + location;
+        }
+        alert.setContentText(content);
+        alert.show();
     }
 
     private void loadFonts() {
@@ -170,7 +209,16 @@ public class Main extends Application {
     }
 
     private void showSettings() {
-        content.getChildren().setAll(new SettingsView(profileRepository, loggedInUserId, this::handleProfileSaved));
+        content.getChildren().setAll(new SettingsView(
+                profileRepository,
+                loggedInUserId,
+                this::handleProfileSaved,
+                scheduleRemindersEnabled,
+                enabled -> {
+                    scheduleRemindersEnabled = enabled;
+                    eventReminderService.setEnabled(enabled);
+                }
+        ));
     }
 
     private void handleProfileSaved(UserProfile profile) {
