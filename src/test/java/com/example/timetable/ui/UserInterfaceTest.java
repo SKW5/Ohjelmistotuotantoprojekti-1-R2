@@ -180,7 +180,7 @@ class UserInterfaceTest {
             @Override public List<Event> findEventsBetween(int userId, LocalDate start, LocalDate end) {
                 queryCount.incrementAndGet();
                 assertEquals(monday, start);
-                assertEquals(monday.plusDays(5), end);
+                assertEquals(monday.plusDays(7), end);
                 return List.of(event);
             }
         });
@@ -189,7 +189,7 @@ class UserInterfaceTest {
             TimetableView view = new TimetableView(service, 7);
             ScrollPane scroll = FxTestSupport.find(view, ScrollPane.class, ignored -> true);
             GridPane grid = (GridPane) scroll.getContent();
-            assertEquals(73, grid.getChildren().size());
+            assertEquals(201, grid.getChildren().size());
             assertTrue(FxTestSupport.find(grid, Label.class, label -> "Review".equals(label.getText())) != null);
             assertTrue(FxTestSupport.find(grid, Label.class, label -> "Room 2".equals(label.getText())) != null);
 

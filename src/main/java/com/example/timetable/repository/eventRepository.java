@@ -16,6 +16,7 @@ public class eventRepository {
 
     public eventRepository(Connection connection) {
         this.connection = connection;
+        if (connection == null) return;
         try (PreparedStatement statement = connection.prepareStatement(
                 "ALTER TABLE student_timetable.timetable_events " +
                         "ADD COLUMN IF NOT EXISTS color VARCHAR(20) NOT NULL DEFAULT 'blue'")) {
