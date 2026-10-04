@@ -3,6 +3,7 @@ package com.example.timetable.ui;
 import com.example.timetable.model.Event;
 import com.example.timetable.service.AddEvent;
 
+import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -18,10 +19,14 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
+import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
 
 public class AddEventDialog {
 
+    private static final DateTimeFormatter TIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
     private static final String[] START_TIMES = {
             "00:00", "01:00", "02:00", "03:00", "04:00", "05:00",
             "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
@@ -34,23 +39,40 @@ public class AddEventDialog {
             "13:00", "14:00", "15:00", "16:00", "17:00", "18:00",
             "19:00", "20:00", "21:00", "22:00", "23:00", "23:59"
     };
+    private static final String[] COLORS = {
+            "Blue",
+            "Green",
+            "Yellow",
+            "Peach",
+            "Purple"
+    };
 
     private final AddEvent addEventService;
     private final int userId;
+    private final Runnable onSaved;
 
     public AddEventDialog(AddEvent addEventService, int userId) {
+        this(addEventService, userId, () -> { });
+    }
+
+    public AddEventDialog(AddEvent addEventService, int userId, Runnable onSaved) {
         this.addEventService = addEventService;
         this.userId = userId;
+        this.onSaved = onSaved == null ? () -> { } : onSaved;
     }
 
     public void show() {
+        show(null);
+    }
+
+    public void show(Event eventToEdit) {
 
         Stage dialog = new Stage();
 
         dialog.initModality(Modality.APPLICATION_MODAL);
-        dialog.setTitle("Add event");
+        dialog.setTitle(eventToEdit == null ? "Add event" : "Edit event");
 
-        VBox box = createContent(dialog);
+        VBox box = createContent(dialog, eventToEdit);
 
         Scene scene = new Scene(box);
 
@@ -68,15 +90,20 @@ public class AddEventDialog {
     }
 
     private VBox createContent(Stage dialog) {
+        return createContent(dialog, null);
+    }
+
+    private VBox createContent(Stage dialog, Event eventToEdit) {
 
         VBox box = new VBox(14);
+        boolean editMode = eventToEdit != null;
 
         box.setPadding(new Insets(26));
         box.setPrefWidth(390);
 
         box.getStyleClass().addAll("dialog", "event-dialog");
 
-        Label title = new Label("Add new event");
+        Label title = new Label(editMode ? "Edit event" : "Add new event");
         title.getStyleClass().addAll("section-title", "card-heading");
 
         // -------------------------
@@ -85,6 +112,9 @@ public class AddEventDialog {
 
         TextField name = new TextField();
         name.setPromptText("Event name");
+        if (editMode) {
+            name.setText(eventToEdit.getTitle());
+        }
 
         // -------------------------
         // DATE
@@ -93,7 +123,7 @@ public class AddEventDialog {
         DatePicker datePicker = new DatePicker();
 
         datePicker.setValue(
-                java.time.LocalDate.now()
+                editMode ? eventToEdit.getEvent_date() : LocalDate.now()
         );
 
         // -------------------------
@@ -106,6 +136,9 @@ public class AddEventDialog {
                 );
 
         startTime.setValue("08:00");
+        if (editMode && eventToEdit.getStart_time() != null) {
+            startTime.setValue(eventToEdit.getStart_time().format(TIME_FORMAT));
+        }
 
         // -------------------------
         // END TIME
@@ -117,6 +150,9 @@ public class AddEventDialog {
                 );
 
         endTime.setValue("09:00");
+        if (editMode && eventToEdit.getEnd_time() != null) {
+            endTime.setValue(eventToEdit.getEnd_time().format(TIME_FORMAT));
+        }
 
         // -------------------------
         // LOCATION
@@ -127,6 +163,9 @@ public class AddEventDialog {
         room.setPromptText(
                 "Room / location"
         );
+        if (editMode) {
+            room.setText(eventToEdit.getLocation());
+        }
 
         // -------------------------
         // COLOR
@@ -134,15 +173,13 @@ public class AddEventDialog {
 
         ComboBox<String> color =
                 new ComboBox<>(
-                        FXCollections.observableArrayList(
-                                "Blue",
-                                "Green",
-                                "Yellow",
-                                "Purple"
-                        )
+                        FXCollections.observableArrayList(COLORS)
                 );
 
         color.setValue("Blue");
+        if (editMode) {
+            color.setValue(displayColor(eventToEdit.getColor()));
+        }
 
         // -------------------------
         // LABELLED CONTROLS
@@ -166,6 +203,10 @@ public class AddEventDialog {
         VBox colorBox =
                 labeled("Color", color);
 
+        Label message = new Label("");
+        message.getStyleClass().add("status-error");
+        message.setWrapText(true);
+
         // -------------------------
         // BUTTONS
         // -------------------------
@@ -181,7 +222,7 @@ public class AddEventDialog {
         cancel.getStyleClass().add("secondary-button");
 
         Button save =
-                new Button("Add");
+                new Button(editMode ? "Save" : "Add");
 
         save.getStyleClass().add(
                 "primary-button"
@@ -206,6 +247,12 @@ public class AddEventDialog {
                         "-fx-border-color: red;"
                 );
 
+                message.setText("Event name is required.");
+                return;
+            }
+            if (eventName.length() > AddEvent.MAX_TITLE_LENGTH) {
+                name.setStyle("-fx-border-color: red;");
+                message.setText("Event name must be at most " + AddEvent.MAX_TITLE_LENGTH + " characters.");
                 return;
             }
 
@@ -221,6 +268,7 @@ public class AddEventDialog {
                         "-fx-border-color: red;"
                 );
 
+                message.setText("Date is required.");
                 return;
             }
 
@@ -250,47 +298,69 @@ public class AddEventDialog {
                             "End time must be after start time."
                     );
 
+                    message.setText("End time must be after start time.");
                     return;
                 }
 
                 endTime.setStyle("");
 
+                String location = room.getText() == null ? "" : room.getText().trim();
+                if (location.length() > AddEvent.MAX_LOCATION_LENGTH) {
+                    room.setStyle("-fx-border-color: red;");
+                    message.setText("Location must be at most " + AddEvent.MAX_LOCATION_LENGTH + " characters.");
+                    return;
+                }
+                room.setStyle("");
+
+                String selectedColor = color.getValue() == null
+                        ? "blue"
+                        : color.getValue().toLowerCase(Locale.ROOT);
+                if (!AddEvent.VALID_COLORS.contains(selectedColor)) {
+                    color.setStyle("-fx-border-color: red;");
+                    message.setText("Choose a valid event color.");
+                    return;
+                }
+                color.setStyle("");
+
                 Event event = new Event(
-                        0,
+                        editMode ? eventToEdit.getEvent_id() : 0,
                         eventName,
                         start,
                         end,
                         eventDate,
-                        room.getText().trim(),
-                        color.getValue().toLowerCase(java.util.Locale.ROOT)
+                        location,
+                        selectedColor
                 );
 
-                // Send event to backend
-                boolean saved =
-                        addEventService.addEvent(userId, event);
+                save.setDisable(true);
+                cancel.setDisable(true);
+                message.setText("");
 
-                if (saved) {
-
-                    System.out.println(
-                            "Event saved successfully!"
-                    );
-
-                    dialog.close();
-
-                } else {
-
-                    System.err.println(
-                            "Failed to save event."
-                    );
-                }
+                Thread worker = new Thread(() -> {
+                    boolean saved = editMode
+                            ? addEventService.updateEvent(userId, event)
+                            : addEventService.addEvent(userId, event);
+                    Platform.runLater(() -> {
+                        save.setDisable(false);
+                        cancel.setDisable(false);
+                        if (saved) {
+                            onSaved.run();
+                            dialog.close();
+                        } else {
+                            message.setText(editMode
+                                    ? "Could not update this event. It may no longer exist or belongs to another user."
+                                    : "Failed to save event. Check the details and try again.");
+                        }
+                    });
+                }, editMode ? "event-update" : "event-save");
+                worker.setDaemon(true);
+                worker.start();
 
             } catch (Exception ex) {
 
                 ex.printStackTrace();
 
-                System.err.println(
-                        "Invalid event data."
-                );
+                message.setText("Invalid event data.");
             }
         });
 
@@ -307,6 +377,7 @@ public class AddEventDialog {
                 endBox,
                 roomBox,
                 colorBox,
+                message,
                 buttons
         );
 
@@ -335,5 +406,17 @@ public class AddEventDialog {
                 label,
                 control
         );
+    }
+
+    private String displayColor(String color) {
+        if (color == null || color.isBlank()) return "Blue";
+
+        String lower = color.toLowerCase(Locale.ROOT);
+        for (String option : COLORS) {
+            if (option.toLowerCase(Locale.ROOT).equals(lower)) {
+                return option;
+            }
+        }
+        return "Blue";
     }
 }

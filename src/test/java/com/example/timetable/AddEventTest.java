@@ -58,6 +58,43 @@ class AddEventTest {
     }
 
     @Test
+    void updatesValidEventWithoutChangingEventId() {
+        TrackingEventRepository repository = new TrackingEventRepository();
+        repository.updateResult = true;
+        AddEvent service = new AddEvent(repository);
+        Event event = event("  Workshop  ");
+        event.setEvent_id(42);
+
+        assertTrue(service.updateEvent(3, event));
+
+        assertEquals(1, repository.updateCalls);
+        assertEquals(42, repository.updatedEvent.getEvent_id());
+        assertEquals("Workshop", repository.updatedEvent.getTitle());
+    }
+
+    @Test
+    void updateReturnsFalseWhenRepositoryRejectsOwnership() {
+        TrackingEventRepository repository = new TrackingEventRepository();
+        repository.updateResult = false;
+        Event event = event("Lecture");
+        event.setEvent_id(42);
+
+        assertFalse(new AddEvent(repository).updateEvent(9, event));
+        assertEquals(1, repository.updateCalls);
+    }
+
+    @Test
+    void rejectsInvalidUpdateTimeWithoutCallingRepository() {
+        TrackingEventRepository repository = new TrackingEventRepository();
+        Event event = event("Lecture");
+        event.setEvent_id(42);
+        event.setEnd_time(LocalTime.of(10, 0));
+
+        assertFalse(new AddEvent(repository).updateEvent(3, event));
+        assertEquals(0, repository.updateCalls);
+    }
+
+    @Test
     void returnsEventsFromRepository() {
         TrackingEventRepository repository = new TrackingEventRepository();
         List<Event> expected = List.of(event("Lecture"));
@@ -85,11 +122,19 @@ class AddEventTest {
     private static class TrackingEventRepository extends eventRepository {
         private int saveCalls;
         private boolean saveResult;
+        private int updateCalls;
+        private boolean updateResult;
+        private Event updatedEvent;
         private int findCalls;
         private List<Event> events = List.of();
 
         TrackingEventRepository() { super(null); }
         @Override public boolean saveEvent(int userId, Event event) { saveCalls++; return saveResult; }
+        @Override public boolean updateEvent(int userId, Event event) {
+            updateCalls++;
+            updatedEvent = event;
+            return updateResult;
+        }
         @Override public List<Event> findEventsBetween(int userId, LocalDate start, LocalDate end) {
             findCalls++;
             return events;

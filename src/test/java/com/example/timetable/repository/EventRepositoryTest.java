@@ -36,6 +36,7 @@ class EventRepositoryTest {
         assertEquals(Time.valueOf(LocalTime.of(10, 30)), parameters.get(4));
         assertEquals(Date.valueOf(LocalDate.of(2026, 10, 2)), parameters.get(5));
         assertEquals("Room 3", parameters.get(6));
+        assertEquals("blue", parameters.get(7));
     }
 
     @Test
@@ -44,6 +45,49 @@ class EventRepositoryTest {
                 new HashMap<>(), true));
 
         assertFalse(repository.saveEvent(3, event("Review", LocalDate.of(2026, 10, 2))));
+    }
+
+    @Test
+    void updatesEventWithExpectedParametersAndOwnerCondition() {
+        Map<Integer, Object> parameters = new HashMap<>();
+        AtomicReference<String> sql = new AtomicReference<>();
+        eventRepository repository = new eventRepository(connectionForUpdate(sql, parameters, 1, false));
+        Event event = event("Updated review", LocalDate.of(2026, 10, 3));
+        event.setEvent_id(55);
+        event.setColor("purple");
+
+        assertTrue(repository.updateEvent(7, event));
+
+        assertTrue(sql.get().contains("UPDATE student_timetable.timetable_events"));
+        assertTrue(sql.get().contains("WHERE event_id = ? AND user_id = ?"));
+        assertEquals("Updated review", parameters.get(1));
+        assertEquals(Time.valueOf(LocalTime.of(9, 30)), parameters.get(2));
+        assertEquals(Time.valueOf(LocalTime.of(10, 30)), parameters.get(3));
+        assertEquals(Date.valueOf(LocalDate.of(2026, 10, 3)), parameters.get(4));
+        assertEquals("Room 3", parameters.get(5));
+        assertEquals("purple", parameters.get(6));
+        assertEquals(55, parameters.get(7));
+        assertEquals(7, parameters.get(8));
+    }
+
+    @Test
+    void updateReturnsFalseWhenNoRowsWereUpdated() {
+        eventRepository repository = new eventRepository(connectionForUpdate(new AtomicReference<>(),
+                new HashMap<>(), 0, false));
+        Event event = event("Review", LocalDate.of(2026, 10, 2));
+        event.setEvent_id(55);
+
+        assertFalse(repository.updateEvent(99, event));
+    }
+
+    @Test
+    void updateReturnsFalseWhenDatabaseFails() {
+        eventRepository repository = new eventRepository(connectionForUpdate(new AtomicReference<>(),
+                new HashMap<>(), 1, true));
+        Event event = event("Review", LocalDate.of(2026, 10, 2));
+        event.setEvent_id(55);
+
+        assertFalse(repository.updateEvent(3, event));
     }
 
     @Test
@@ -92,6 +136,23 @@ class EventRepositoryTest {
             if (method.startsWith("set")) parameters.put((Integer) args[0], args[1]);
             if (method.equals("executeUpdate") && fail) throw new SQLException("write failed");
             return method.equals("executeUpdate") ? 1 : null;
+        });
+        return proxy(Connection.class, (method, args) -> {
+            if (method.equals("prepareStatement")) {
+                sql.set((String) args[0]);
+                if (fail) throw new SQLException("prepare failed");
+                return statement;
+            }
+            return null;
+        });
+    }
+
+    private static Connection connectionForUpdate(AtomicReference<String> sql, Map<Integer, Object> parameters,
+                                                  int updatedRows, boolean fail) {
+        PreparedStatement statement = proxy(PreparedStatement.class, (method, args) -> {
+            if (method.startsWith("set")) parameters.put((Integer) args[0], args[1]);
+            if (method.equals("executeUpdate") && fail) throw new SQLException("write failed");
+            return method.equals("executeUpdate") ? updatedRows : null;
         });
         return proxy(Connection.class, (method, args) -> {
             if (method.equals("prepareStatement")) {

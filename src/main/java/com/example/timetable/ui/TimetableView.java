@@ -2,6 +2,7 @@ package com.example.timetable.ui;
 
 import com.example.timetable.service.AddEvent;
 import com.example.timetable.model.Event;
+import javafx.application.Platform;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -73,8 +74,7 @@ public class TimetableView extends VBox {
         add.getStyleClass().addAll("dark-button", "primary-button", "new-event-button");
         add.setDisable(userId <= 0);
         add.setOnAction(e -> {
-            new AddEventDialog(addEventService, userId).show();
-            refreshCalendar();
+            new AddEventDialog(addEventService, userId, this::refreshCalendar).show();
         });
         titleRow.getChildren().addAll(titleBox, spacer, add);
         return titleRow;
@@ -90,7 +90,7 @@ public class TimetableView extends VBox {
         createHeaders(grid);
         createTimeLabels(grid);
         createCalendarCells(grid);
-        addDatabaseEvents(grid);
+        loadDatabaseEvents(grid);
 
         return grid;
     }
@@ -146,10 +146,22 @@ public class TimetableView extends VBox {
         }
     }
 
-    private void addDatabaseEvents(GridPane grid) {
+    private void loadDatabaseEvents(GridPane grid) {
         if (addEventService == null) return;
         LocalDate monday = LocalDate.now().with(DayOfWeek.MONDAY);
-        List<Event> events = addEventService.getEventsBetween(userId, monday, monday.plusDays(7));
+        Thread worker = new Thread(() -> {
+            List<Event> events = addEventService.getEventsBetween(userId, monday, monday.plusDays(7));
+            Platform.runLater(() -> {
+                if (calendarScroll.getContent() == grid) {
+                    addDatabaseEvents(grid, events);
+                }
+            });
+        }, "calendar-events-load");
+        worker.setDaemon(true);
+        worker.start();
+    }
+
+    private void addDatabaseEvents(GridPane grid, List<Event> events) {
         DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm");
 
         for (Event event : events) {
@@ -161,9 +173,9 @@ public class TimetableView extends VBox {
 
             if (day < 0 || day >= DAYS.length || firstSlot < 0 || firstSlot >= TIMES.length) continue;
             int rowSpan = Math.max(1, Math.min(TIMES.length - firstSlot, lastSlot - firstSlot));
-            addEvent(grid, day, firstSlot, rowSpan, event.getTitle(),
+            addEvent(grid, day, firstSlot, rowSpan, event,
                     event.getStart_time().format(timeFormat) + "-" + event.getEnd_time().format(timeFormat),
-                    event.getLocation(), event.getColor());
+                    event.getColor());
         }
     }
 
@@ -172,22 +184,26 @@ public class TimetableView extends VBox {
             int day,
             int row,
             int rowSpan,
-            String name,
+            Event calendarEvent,
             String time,
-            String room,
             String style
     ) {
         VBox event = new VBox(1);
         event.setPadding(new Insets(3, 5, 3, 5));
         event.getStyleClass().addAll("event", "event-block", "event-" + style);
+        if (userId > 0) {
+            event.setOnMouseClicked(mouseEvent ->
+                    new AddEventDialog(addEventService, userId, this::refreshCalendar).show(calendarEvent)
+            );
+        }
 
-        Label nameLabel = new Label(name);
+        Label nameLabel = new Label(calendarEvent.getTitle());
         nameLabel.getStyleClass().add("event-name");
 
         Label timeLabel = new Label(time);
         timeLabel.getStyleClass().add("event-time");
 
-        Label roomLabel = new Label(room);
+        Label roomLabel = new Label(calendarEvent.getLocation());
         roomLabel.getStyleClass().add("event-room");
 
         event.getChildren().addAll(nameLabel, timeLabel, roomLabel);

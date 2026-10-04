@@ -29,6 +29,8 @@ import java.sql.SQLException;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -54,6 +56,8 @@ class UserInterfaceTest {
         FxTestSupport.onFxThread(() -> {
             LandingView view = new LandingView(logins::incrementAndGet,
                     registrations::incrementAndGet, skips::incrementAndGet);
+            assertNotNull(FxTestSupport.find(view, Label.class,
+                    label -> "Student time table".equals(label.getText())));
             List<Button> buttons = FxTestSupport.findAll(view, Button.class);
             buttons.stream().filter(button -> button.getText().equals("Log in")).findFirst().orElseThrow().fire();
             buttons.stream().filter(button -> button.getText().equals("Register")).findFirst().orElseThrow().fire();
@@ -176,25 +180,47 @@ class UserInterfaceTest {
         Event event = new Event(8, "Review", LocalTime.of(9, 0), LocalTime.of(10, 0),
                 monday.plusDays(1), "Room 2");
         AtomicInteger queryCount = new AtomicInteger();
+        CountDownLatch queried = new CountDownLatch(1);
+        AtomicReference<TimetableView> timetable = new AtomicReference<>();
+        AtomicReference<TimetableView> signedOutTimetable = new AtomicReference<>();
         AddEvent service = new AddEvent(new eventRepository(null) {
             @Override public List<Event> findEventsBetween(int userId, LocalDate start, LocalDate end) {
-                queryCount.incrementAndGet();
-                assertEquals(monday, start);
-                assertEquals(monday.plusDays(7), end);
-                return List.of(event);
+                try {
+                    queryCount.incrementAndGet();
+                    assertEquals(monday, start);
+                    assertEquals(monday.plusDays(7), end);
+                    return List.of(event);
+                } finally {
+                    queried.countDown();
+                }
             }
         });
 
         FxTestSupport.onFxThread(() -> {
-            TimetableView view = new TimetableView(service, 7);
-            ScrollPane scroll = FxTestSupport.find(view, ScrollPane.class, ignored -> true);
+            timetable.set(new TimetableView(service, 7));
+            signedOutTimetable.set(new TimetableView(service, 0));
+            return null;
+        });
+
+        assertTrue(queried.await(5, TimeUnit.SECONDS));
+        for (int attempt = 0; attempt < 50; attempt++) {
+            Boolean rendered = FxTestSupport.onFxThread(() -> {
+                ScrollPane scroll = FxTestSupport.find(timetable.get(), ScrollPane.class, ignored -> true);
+                GridPane grid = (GridPane) scroll.getContent();
+                return FxTestSupport.find(grid, Label.class, label -> "Review".equals(label.getText())) != null;
+            });
+            if (rendered) break;
+            Thread.sleep(50);
+        }
+
+        FxTestSupport.onFxThread(() -> {
+            ScrollPane scroll = FxTestSupport.find(timetable.get(), ScrollPane.class, ignored -> true);
             GridPane grid = (GridPane) scroll.getContent();
             assertEquals(201, grid.getChildren().size());
             assertTrue(FxTestSupport.find(grid, Label.class, label -> "Review".equals(label.getText())) != null);
             assertTrue(FxTestSupport.find(grid, Label.class, label -> "Room 2".equals(label.getText())) != null);
 
-            TimetableView signedOut = new TimetableView(service, 0);
-            Button add = FxTestSupport.find(signedOut, Button.class,
+            Button add = FxTestSupport.find(signedOutTimetable.get(), Button.class,
                     button -> "+ New event".equals(button.getText()));
             assertTrue(add.isDisabled());
             return null;
@@ -206,10 +232,12 @@ class UserInterfaceTest {
     @Test
     void addEventDialogSavesValidInputAndCloses() throws Exception {
         AtomicReference<Event> savedEvent = new AtomicReference<>();
+        CountDownLatch saved = new CountDownLatch(1);
         AddEvent service = new AddEvent(new eventRepository(null) {
             @Override public boolean saveEvent(int userId, Event event) {
                 assertEquals(23, userId);
                 savedEvent.set(event);
+                saved.countDown();
                 return true;
             }
         });
@@ -236,12 +264,100 @@ class UserInterfaceTest {
             return null;
         });
 
+        assertTrue(saved.await(5, TimeUnit.SECONDS));
         assertNotNull(savedEvent.get());
         assertEquals("Design review", savedEvent.get().getTitle());
         assertEquals(LocalTime.of(9, 0), savedEvent.get().getStart_time());
         assertEquals(LocalTime.of(10, 0), savedEvent.get().getEnd_time());
         assertEquals(date, savedEvent.get().getEvent_date());
         assertEquals("Room 5", savedEvent.get().getLocation());
+    }
+
+    @Test
+    void editEventDialogPrefillsAndUpdatesExistingEvent() throws Exception {
+        AtomicReference<Event> updatedEvent = new AtomicReference<>();
+        CountDownLatch updated = new CountDownLatch(1);
+        AddEvent service = new AddEvent(new eventRepository(null) {
+            @Override public boolean updateEvent(int userId, Event event) {
+                assertEquals(23, userId);
+                updatedEvent.set(event);
+                updated.countDown();
+                return true;
+            }
+        });
+        Event existing = new Event(77, "Review", LocalTime.of(9, 0), LocalTime.of(10, 0),
+                LocalDate.of(2026, 10, 12), "Room 5", "purple");
+
+        FxTestSupport.onFxThread(() -> {
+            AddEventDialog dialog = new AddEventDialog(service, 23);
+            Stage stage = new Stage();
+            var createContent = AddEventDialog.class.getDeclaredMethod("createContent", Stage.class, Event.class);
+            createContent.setAccessible(true);
+            VBox content = (VBox) createContent.invoke(dialog, stage, existing);
+
+            assertTrue(FxTestSupport.findAll(content, Label.class).stream()
+                    .anyMatch(label -> "Edit event".equals(label.getText())));
+            TextField name = FxTestSupport.find(content, TextField.class,
+                    field -> "Event name".equals(field.getPromptText()));
+            TextField room = FxTestSupport.find(content, TextField.class,
+                    field -> "Room / location".equals(field.getPromptText()));
+            DatePicker datePicker = FxTestSupport.find(content, DatePicker.class, ignored -> true);
+            List<ComboBox> combos = FxTestSupport.findAll(content, ComboBox.class);
+
+            assertEquals("Review", name.getText());
+            assertEquals("Room 5", room.getText());
+            assertEquals(LocalDate.of(2026, 10, 12), datePicker.getValue());
+            assertEquals("09:00", combos.get(0).getValue());
+            assertEquals("10:00", combos.get(1).getValue());
+            assertEquals("Purple", combos.get(2).getValue());
+
+            name.setText("Updated review");
+            room.setText("Room 8");
+            datePicker.setValue(LocalDate.of(2026, 10, 13));
+            combos.get(0).setValue("11:00");
+            combos.get(1).setValue("12:00");
+            combos.get(2).setValue("Green");
+            FxTestSupport.find(content, Button.class, button -> "Save".equals(button.getText())).fire();
+            return null;
+        });
+
+        assertTrue(updated.await(5, TimeUnit.SECONDS));
+        assertEquals(77, updatedEvent.get().getEvent_id());
+        assertEquals("Updated review", updatedEvent.get().getTitle());
+        assertEquals(LocalTime.of(11, 0), updatedEvent.get().getStart_time());
+        assertEquals(LocalTime.of(12, 0), updatedEvent.get().getEnd_time());
+        assertEquals(LocalDate.of(2026, 10, 13), updatedEvent.get().getEvent_date());
+        assertEquals("Room 8", updatedEvent.get().getLocation());
+        assertEquals("green", updatedEvent.get().getColor());
+    }
+
+    @Test
+    void editEventDialogCancelDoesNotSaveChanges() throws Exception {
+        AtomicInteger updateCalls = new AtomicInteger();
+        AddEvent service = new AddEvent(new eventRepository(null) {
+            @Override public boolean updateEvent(int userId, Event event) {
+                updateCalls.incrementAndGet();
+                return true;
+            }
+        });
+        Event existing = new Event(77, "Review", LocalTime.of(9, 0), LocalTime.of(10, 0),
+                LocalDate.of(2026, 10, 12), "Room 5", "blue");
+
+        FxTestSupport.onFxThread(() -> {
+            AddEventDialog dialog = new AddEventDialog(service, 23);
+            Stage stage = new Stage();
+            var createContent = AddEventDialog.class.getDeclaredMethod("createContent", Stage.class, Event.class);
+            createContent.setAccessible(true);
+            VBox content = (VBox) createContent.invoke(dialog, stage, existing);
+            TextField name = FxTestSupport.find(content, TextField.class,
+                    field -> "Event name".equals(field.getPromptText()));
+            name.setText("Unsaved title");
+            FxTestSupport.find(content, Button.class, button -> "Cancel".equals(button.getText())).fire();
+            return null;
+        });
+
+        assertEquals(0, updateCalls.get());
+        assertEquals("Review", existing.getTitle());
     }
 
     @Test

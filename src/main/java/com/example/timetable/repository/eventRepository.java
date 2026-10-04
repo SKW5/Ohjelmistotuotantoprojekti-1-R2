@@ -16,14 +16,6 @@ public class eventRepository {
 
     public eventRepository(Connection connection) {
         this.connection = connection;
-        if (connection == null) return;
-        try (PreparedStatement statement = connection.prepareStatement(
-                "ALTER TABLE student_timetable.timetable_events " +
-                        "ADD COLUMN IF NOT EXISTS color VARCHAR(20) NOT NULL DEFAULT 'blue'")) {
-            statement.executeUpdate();
-        } catch (SQLException | RuntimeException e) {
-            System.err.println("Error preparing event colors: " + e.getMessage());
-        }
     }
 
     public boolean saveEvent(int userId, Event event) {
@@ -32,21 +24,53 @@ public class eventRepository {
                 VALUES (?, ?, ?, ?, ?, ?, ?)
         """;
 
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
+        try {
+            synchronized (connection) {
+                try (PreparedStatement statement = connection.prepareStatement(sql)) {
 
-            statement.setInt(1, userId);
-            statement.setString(2, event.getTitle());
-            statement.setTime(3, java.sql.Time.valueOf(event.getStart_time()));
-            statement.setTime(4, java.sql.Time.valueOf(event.getEnd_time()));
-            statement.setDate(5, java.sql.Date.valueOf(event.getEvent_date()));
-            statement.setString(6, event.getLocation());
-            statement.setString(7, event.getColor());
+                    statement.setInt(1, userId);
+                    statement.setString(2, event.getTitle());
+                    statement.setTime(3, java.sql.Time.valueOf(event.getStart_time()));
+                    statement.setTime(4, java.sql.Time.valueOf(event.getEnd_time()));
+                    statement.setDate(5, java.sql.Date.valueOf(event.getEvent_date()));
+                    statement.setString(6, event.getLocation());
+                    statement.setString(7, event.getColor());
 
-            statement.executeUpdate();
+                    statement.executeUpdate();
+                }
+            }
 
             return true;
         } catch (SQLException e) {
             System.err.println("Error saving event: " + e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean updateEvent(int userId, Event event) {
+        String sql = """
+                UPDATE student_timetable.timetable_events
+                SET title = ?, start_time = ?, end_time = ?, event_date = ?, location = ?, color = ?
+                WHERE event_id = ? AND user_id = ?
+                """;
+
+        try {
+            synchronized (connection) {
+                try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                    statement.setString(1, event.getTitle());
+                    statement.setTime(2, java.sql.Time.valueOf(event.getStart_time()));
+                    statement.setTime(3, java.sql.Time.valueOf(event.getEnd_time()));
+                    statement.setDate(4, java.sql.Date.valueOf(event.getEvent_date()));
+                    statement.setString(5, event.getLocation());
+                    statement.setString(6, event.getColor());
+                    statement.setInt(7, event.getEvent_id());
+                    statement.setInt(8, userId);
+
+                    return statement.executeUpdate() == 1;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error updating event: " + e.getMessage());
             return false;
         }
     }
@@ -60,21 +84,25 @@ public class eventRepository {
                 """;
         List<Event> events = new ArrayList<>();
 
-        try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            statement.setInt(1, userId);
-            statement.setDate(2, java.sql.Date.valueOf(startDate));
-            statement.setDate(3, java.sql.Date.valueOf(endDate));
-            try (ResultSet result = statement.executeQuery()) {
-                while (result.next()) {
-                    events.add(new Event(
-                            result.getInt("event_id"),
-                            result.getString("title"),
-                            result.getTime("start_time").toLocalTime(),
-                            result.getTime("end_time").toLocalTime(),
-                            result.getDate("event_date").toLocalDate(),
-                            result.getString("location"),
-                            result.getString("color")
-                    ));
+        try {
+            synchronized (connection) {
+                try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                    statement.setInt(1, userId);
+                    statement.setDate(2, java.sql.Date.valueOf(startDate));
+                    statement.setDate(3, java.sql.Date.valueOf(endDate));
+                    try (ResultSet result = statement.executeQuery()) {
+                        while (result.next()) {
+                            events.add(new Event(
+                                    result.getInt("event_id"),
+                                    result.getString("title"),
+                                    result.getTime("start_time").toLocalTime(),
+                                    result.getTime("end_time").toLocalTime(),
+                                    result.getDate("event_date").toLocalDate(),
+                                    result.getString("location"),
+                                    result.getString("color")
+                            ));
+                        }
+                    }
                 }
             }
         } catch (SQLException e) {
