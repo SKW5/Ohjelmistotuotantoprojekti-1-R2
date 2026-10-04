@@ -1,9 +1,16 @@
 pipeline {
 	agent any
+	options {
+		skipDefaultCheckout(true)
+	}
+	tools {
+		jdk 'JDK 21'
+		maven 'Maven 3.9'
+	}
 	stages {
 		stage('Checkout') {
 			steps {
-				git branch: 'main', url: 'https://github.com/SKW5/Ohjelmistotuotantoprojekti-1-R2'
+				checkout scm
 			}
 		}
 		stage('Build') {
