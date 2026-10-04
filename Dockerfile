@@ -2,10 +2,10 @@ FROM maven:3.9-eclipse-temurin-21
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        libasound2 \
+        libasound2t64 \
         libfontconfig1 \
         libfreetype6 \
-        libgtk-3-0 \
+        libgtk-3-0t64 \
         libxi6 \
         libxrender1 \
         libxtst6 \
