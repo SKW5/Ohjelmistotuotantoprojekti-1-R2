@@ -4,9 +4,9 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
+import javafx.scene.text.TextAlignment;
 
 public class LandingView extends StackPane {
 
@@ -29,8 +29,11 @@ public class LandingView extends StackPane {
         Label title = new Label("student time table");
         title.getStyleClass().add("brand-title");
         title.setAlignment(Pos.CENTER);
+        title.setTextAlignment(TextAlignment.CENTER);
+        title.setWrapText(true);
+        title.setMinWidth(0);
         title.setMaxWidth(Double.MAX_VALUE);
-        title.setMinWidth(Region.USE_PREF_SIZE);
+        title.prefWidthProperty().bind(center.widthProperty());
 
         Button login = new Button("Log in");
         login.getStyleClass().add("primary-button");
