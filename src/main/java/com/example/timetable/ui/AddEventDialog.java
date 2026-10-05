@@ -8,13 +8,18 @@ import javafx.collections.FXCollections;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.ButtonBar;
+import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Control;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -23,6 +28,7 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.Optional;
 
 public class AddEventDialog {
 
@@ -50,15 +56,23 @@ public class AddEventDialog {
     private final AddEvent addEventService;
     private final int userId;
     private final Runnable onSaved;
+    private final DeleteConfirmation deleteConfirmation;
 
     public AddEventDialog(AddEvent addEventService, int userId) {
         this(addEventService, userId, () -> { });
     }
 
     public AddEventDialog(AddEvent addEventService, int userId, Runnable onSaved) {
+        this(addEventService, userId, onSaved, AddEventDialog::confirmDeleteWithAlert);
+    }
+
+    AddEventDialog(AddEvent addEventService, int userId, Runnable onSaved, DeleteConfirmation deleteConfirmation) {
         this.addEventService = addEventService;
         this.userId = userId;
         this.onSaved = onSaved == null ? () -> { } : onSaved;
+        this.deleteConfirmation = deleteConfirmation == null
+                ? AddEventDialog::confirmDeleteWithAlert
+                : deleteConfirmation;
     }
 
     public void show() {
@@ -217,6 +231,13 @@ public class AddEventDialog {
                 "primary-button"
         );
 
+        Button delete =
+                new Button("Delete");
+        delete.getStyleClass().addAll("secondary-button", "danger-button");
+        delete.setVisible(editMode);
+        delete.setManaged(editMode);
+        delete.setDisable(userId <= 0);
+
         cancel.setOnAction(
                 e -> dialog.close()
         );
@@ -323,6 +344,7 @@ public class AddEventDialog {
 
                 save.setDisable(true);
                 cancel.setDisable(true);
+                delete.setDisable(true);
                 message.setText("");
 
                 Thread worker = new Thread(() -> {
@@ -332,6 +354,7 @@ public class AddEventDialog {
                     Platform.runLater(() -> {
                         save.setDisable(false);
                         cancel.setDisable(false);
+                        delete.setDisable(userId <= 0);
                         if (saved) {
                             onSaved.run();
                             dialog.close();
@@ -353,10 +376,61 @@ public class AddEventDialog {
             }
         });
 
-        buttons.getChildren().addAll(
-                cancel,
-                save
-        );
+        delete.setOnAction(e -> {
+            if (!editMode || userId <= 0) {
+                message.setText("Log in to delete events.");
+                return;
+            }
+            if (!deleteConfirmation.confirm(eventToEdit)) {
+                return;
+            }
+
+            save.setDisable(true);
+            cancel.setDisable(true);
+            delete.setDisable(true);
+            message.setText("");
+
+            Thread worker = new Thread(() -> {
+                boolean deleted;
+                try {
+                    deleted = addEventService.deleteEvent(userId, eventToEdit.getEvent_id());
+                } catch (RuntimeException ex) {
+                    ex.printStackTrace();
+                    deleted = false;
+                }
+
+                boolean deletionSucceeded = deleted;
+                Platform.runLater(() -> {
+                    save.setDisable(false);
+                    cancel.setDisable(false);
+                    delete.setDisable(false);
+                    if (deletionSucceeded) {
+                        onSaved.run();
+                        dialog.close();
+                    } else {
+                        message.setText("Could not delete this event. It may no longer exist or belongs to another user.");
+                    }
+                });
+            }, "event-delete");
+            worker.setDaemon(true);
+            worker.start();
+        });
+
+        Region buttonSpacer = new Region();
+        HBox.setHgrow(buttonSpacer, Priority.ALWAYS);
+        if (editMode) {
+            buttons.getChildren().addAll(
+                    delete,
+                    buttonSpacer,
+                    cancel,
+                    save
+            );
+        } else {
+            buttons.getChildren().addAll(
+                    cancel,
+                    save
+            );
+        }
 
         box.getChildren().addAll(
                 title,
@@ -407,5 +481,24 @@ public class AddEventDialog {
             }
         }
         return "Blue";
+    }
+
+    private static boolean confirmDeleteWithAlert(Event event) {
+        Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
+        confirmation.setTitle("Delete event");
+        confirmation.setHeaderText("Delete this event?");
+        confirmation.setContentText(event == null ? "" : event.getTitle());
+
+        ButtonType cancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType delete = new ButtonType("Delete", ButtonBar.ButtonData.OK_DONE);
+        confirmation.getButtonTypes().setAll(cancel, delete);
+
+        Optional<ButtonType> result = confirmation.showAndWait();
+        return result.isPresent() && result.get() == delete;
+    }
+
+    @FunctionalInterface
+    interface DeleteConfirmation {
+        boolean confirm(Event event);
     }
 }

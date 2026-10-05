@@ -75,6 +75,27 @@ public class eventRepository {
         }
     }
 
+    public boolean deleteEvent(int userId, int eventId) {
+        String sql = """
+                DELETE FROM student_timetable.timetable_events
+                WHERE event_id = ? AND user_id = ?
+                """;
+
+        try {
+            synchronized (connection) {
+                try (PreparedStatement statement = connection.prepareStatement(sql)) {
+                    statement.setInt(1, eventId);
+                    statement.setInt(2, userId);
+
+                    return statement.executeUpdate() == 1;
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("Error deleting event: " + e.getMessage());
+            return false;
+        }
+    }
+
     public List<Event> findEventsBetween(int userId, LocalDate startDate, LocalDate endDate) {
         String sql = """
                 SELECT event_id, title, start_time, end_time, event_date, location, color

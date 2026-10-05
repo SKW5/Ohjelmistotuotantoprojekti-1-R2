@@ -95,6 +95,39 @@ class AddEventTest {
     }
 
     @Test
+    void deletesValidEvent() {
+        TrackingEventRepository repository = new TrackingEventRepository();
+        repository.deleteResult = true;
+
+        assertTrue(new AddEvent(repository).deleteEvent(3, 42));
+
+        assertEquals(1, repository.deleteCalls);
+        assertEquals(3, repository.deletedUserId);
+        assertEquals(42, repository.deletedEventId);
+    }
+
+    @Test
+    void rejectsInvalidDeleteIdsWithoutCallingRepository() {
+        TrackingEventRepository repository = new TrackingEventRepository();
+        AddEvent service = new AddEvent(repository);
+
+        assertFalse(service.deleteEvent(0, 42));
+        assertFalse(service.deleteEvent(3, 0));
+        assertFalse(service.deleteEvent(-1, 42));
+        assertFalse(service.deleteEvent(3, -1));
+        assertEquals(0, repository.deleteCalls);
+    }
+
+    @Test
+    void deleteReturnsFalseWhenRepositoryRejectsOwnershipOrMissingEvent() {
+        TrackingEventRepository repository = new TrackingEventRepository();
+        repository.deleteResult = false;
+
+        assertFalse(new AddEvent(repository).deleteEvent(9, 42));
+        assertEquals(1, repository.deleteCalls);
+    }
+
+    @Test
     void returnsEventsFromRepository() {
         TrackingEventRepository repository = new TrackingEventRepository();
         List<Event> expected = List.of(event("Lecture"));
@@ -125,6 +158,10 @@ class AddEventTest {
         private int updateCalls;
         private boolean updateResult;
         private Event updatedEvent;
+        private int deleteCalls;
+        private boolean deleteResult;
+        private int deletedUserId;
+        private int deletedEventId;
         private int findCalls;
         private List<Event> events = List.of();
 
@@ -134,6 +171,12 @@ class AddEventTest {
             updateCalls++;
             updatedEvent = event;
             return updateResult;
+        }
+        @Override public boolean deleteEvent(int userId, int eventId) {
+            deleteCalls++;
+            deletedUserId = userId;
+            deletedEventId = eventId;
+            return deleteResult;
         }
         @Override public List<Event> findEventsBetween(int userId, LocalDate start, LocalDate end) {
             findCalls++;

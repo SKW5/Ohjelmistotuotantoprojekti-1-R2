@@ -32,6 +32,12 @@ public class AddEvent {
         return eventRepository.updateEvent(userId, event);
     }
 
+    public boolean deleteEvent(int userId, int eventId) {
+        if (userId <= 0 || eventId <= 0) return false;
+
+        return eventRepository.deleteEvent(userId, eventId);
+    }
+
     public List<Event> getEventsBetween(int userId, LocalDate startDate, LocalDate endDate) {
         if (userId <= 0) return List.of();
         return eventRepository.findEventsBetween(userId, startDate, endDate);

@@ -263,6 +263,7 @@ class UserInterfaceTest {
             datePicker.setValue(date);
             combos.get(0).setValue("09:00");
             combos.get(1).setValue("10:00");
+            assertNull(FxTestSupport.find(content, Button.class, button -> "Delete".equals(button.getText())));
             FxTestSupport.find(content, Button.class, button -> "Add".equals(button.getText())).fire();
             return null;
         });
@@ -313,6 +314,7 @@ class UserInterfaceTest {
             assertEquals("09:00", combos.get(0).getValue());
             assertEquals("10:00", combos.get(1).getValue());
             assertEquals("Purple", combos.get(2).getValue());
+            assertNotNull(FxTestSupport.find(content, Button.class, button -> "Delete".equals(button.getText())));
 
             name.setText("Updated review");
             room.setText("Room 8");
@@ -361,6 +363,109 @@ class UserInterfaceTest {
 
         assertEquals(0, updateCalls.get());
         assertEquals("Review", existing.getTitle());
+    }
+
+    @Test
+    void editEventDialogDeleteCancellationDoesNotDelete() throws Exception {
+        AtomicInteger deleteCalls = new AtomicInteger();
+        AddEvent service = new AddEvent(new eventRepository(null) {
+            @Override public boolean deleteEvent(int userId, int eventId) {
+                deleteCalls.incrementAndGet();
+                return true;
+            }
+        });
+        Event existing = new Event(77, "Review", LocalTime.of(9, 0), LocalTime.of(10, 0),
+                LocalDate.of(2026, 10, 12), "Room 5", "blue");
+
+        FxTestSupport.onFxThread(() -> {
+            AddEventDialog dialog = new AddEventDialog(service, 23, () -> { }, event -> false);
+            Stage stage = new Stage();
+            var createContent = AddEventDialog.class.getDeclaredMethod("createContent", Stage.class, Event.class);
+            createContent.setAccessible(true);
+            VBox content = (VBox) createContent.invoke(dialog, stage, existing);
+
+            FxTestSupport.find(content, Button.class, button -> "Delete".equals(button.getText())).fire();
+            return null;
+        });
+
+        assertEquals(0, deleteCalls.get());
+    }
+
+    @Test
+    void editEventDialogDeletesExistingEventAndRunsCallback() throws Exception {
+        AtomicInteger savedCallbacks = new AtomicInteger();
+        AtomicReference<Integer> deletedEventId = new AtomicReference<>();
+        CountDownLatch deleted = new CountDownLatch(1);
+        AddEvent service = new AddEvent(new eventRepository(null) {
+            @Override public boolean deleteEvent(int userId, int eventId) {
+                assertEquals(23, userId);
+                deletedEventId.set(eventId);
+                deleted.countDown();
+                return true;
+            }
+        });
+        Event existing = new Event(77, "Review", LocalTime.of(9, 0), LocalTime.of(10, 0),
+                LocalDate.of(2026, 10, 12), "Room 5", "blue");
+
+        FxTestSupport.onFxThread(() -> {
+            AddEventDialog dialog = new AddEventDialog(service, 23, savedCallbacks::incrementAndGet, event -> true);
+            Stage stage = new Stage();
+            var createContent = AddEventDialog.class.getDeclaredMethod("createContent", Stage.class, Event.class);
+            createContent.setAccessible(true);
+            VBox content = (VBox) createContent.invoke(dialog, stage, existing);
+
+            FxTestSupport.find(content, Button.class, button -> "Delete".equals(button.getText())).fire();
+            return null;
+        });
+
+        assertTrue(deleted.await(5, TimeUnit.SECONDS));
+        for (int attempt = 0; attempt < 50 && savedCallbacks.get() == 0; attempt++) {
+            FxTestSupport.onFxThread(() -> null);
+            Thread.sleep(50);
+        }
+        assertEquals(77, deletedEventId.get());
+        assertEquals(1, savedCallbacks.get());
+    }
+
+    @Test
+    void editEventDialogRestoresButtonsAndShowsMessageWhenDeleteFails() throws Exception {
+        CountDownLatch deleteAttempted = new CountDownLatch(1);
+        AtomicReference<VBox> contentRef = new AtomicReference<>();
+        AddEvent service = new AddEvent(new eventRepository(null) {
+            @Override public boolean deleteEvent(int userId, int eventId) {
+                deleteAttempted.countDown();
+                return false;
+            }
+        });
+        Event existing = new Event(77, "Review", LocalTime.of(9, 0), LocalTime.of(10, 0),
+                LocalDate.of(2026, 10, 12), "Room 5", "blue");
+
+        FxTestSupport.onFxThread(() -> {
+            AddEventDialog dialog = new AddEventDialog(service, 23, () -> { }, event -> true);
+            Stage stage = new Stage();
+            var createContent = AddEventDialog.class.getDeclaredMethod("createContent", Stage.class, Event.class);
+            createContent.setAccessible(true);
+            VBox content = (VBox) createContent.invoke(dialog, stage, existing);
+            contentRef.set(content);
+
+            FxTestSupport.find(content, Button.class, button -> "Delete".equals(button.getText())).fire();
+            return null;
+        });
+
+        assertTrue(deleteAttempted.await(5, TimeUnit.SECONDS));
+        for (int attempt = 0; attempt < 50; attempt++) {
+            Boolean restored = FxTestSupport.onFxThread(() -> {
+                VBox content = contentRef.get();
+                Button delete = FxTestSupport.find(content, Button.class, button -> "Delete".equals(button.getText()));
+                Button save = FxTestSupport.find(content, Button.class, button -> "Save".equals(button.getText()));
+                return !delete.isDisabled() && !save.isDisabled()
+                        && FxTestSupport.find(content, Label.class,
+                        label -> label.getText().contains("Could not delete this event")) != null;
+            });
+            if (restored) return;
+            Thread.sleep(50);
+        }
+        fail("Delete failure did not restore buttons and show an error message");
     }
 
     @Test

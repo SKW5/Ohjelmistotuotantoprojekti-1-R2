@@ -91,6 +91,36 @@ class EventRepositoryTest {
     }
 
     @Test
+    void deletesEventWithExpectedParametersAndOwnerCondition() {
+        Map<Integer, Object> parameters = new HashMap<>();
+        AtomicReference<String> sql = new AtomicReference<>();
+        eventRepository repository = new eventRepository(connectionForUpdate(sql, parameters, 1, false));
+
+        assertTrue(repository.deleteEvent(7, 55));
+
+        assertTrue(sql.get().contains("DELETE FROM student_timetable.timetable_events"));
+        assertTrue(sql.get().contains("WHERE event_id = ? AND user_id = ?"));
+        assertEquals(55, parameters.get(1));
+        assertEquals(7, parameters.get(2));
+    }
+
+    @Test
+    void deleteReturnsFalseWhenNoRowsWereDeleted() {
+        eventRepository repository = new eventRepository(connectionForUpdate(new AtomicReference<>(),
+                new HashMap<>(), 0, false));
+
+        assertFalse(repository.deleteEvent(99, 55));
+    }
+
+    @Test
+    void deleteReturnsFalseWhenDatabaseFails() {
+        eventRepository repository = new eventRepository(connectionForUpdate(new AtomicReference<>(),
+                new HashMap<>(), 1, true));
+
+        assertFalse(repository.deleteEvent(3, 55));
+    }
+
+    @Test
     void loadsRowsAndUsesHalfOpenDateRange() {
         Map<Integer, Object> parameters = new HashMap<>();
         List<Map<String, Object>> rows = List.of(row(7, "Review", LocalDate.of(2026, 10, 2)));

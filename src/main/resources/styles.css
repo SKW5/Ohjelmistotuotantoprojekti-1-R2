@@ -103,6 +103,20 @@
     -fx-effect: none;
 }
 
+.danger-button {
+    -fx-text-fill: #b3261e;
+    -fx-border-color: #b3261e;
+}
+
+.danger-button:hover {
+    -fx-background-color: #fbeaea;
+    -fx-border-color: #8f1d17;
+}
+
+.danger-button:pressed {
+    -fx-background-color: #f3d0cd;
+}
+
 .new-event-button {
     -fx-padding: 10 18;
 }
