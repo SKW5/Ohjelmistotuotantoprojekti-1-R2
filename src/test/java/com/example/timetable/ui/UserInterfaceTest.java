@@ -15,6 +15,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
@@ -56,8 +57,10 @@ class UserInterfaceTest {
         FxTestSupport.onFxThread(() -> {
             LandingView view = new LandingView(logins::incrementAndGet,
                     registrations::incrementAndGet, skips::incrementAndGet);
-            assertNotNull(FxTestSupport.find(view, Label.class,
-                    label -> "Student time table".equals(label.getText())));
+            Label title = FxTestSupport.find(view, Label.class,
+                    label -> "student time table".equals(label.getText()));
+            assertNotNull(title);
+            assertEquals(Region.USE_PREF_SIZE, title.getMinWidth());
             List<Button> buttons = FxTestSupport.findAll(view, Button.class);
             buttons.stream().filter(button -> button.getText().equals("Log in")).findFirst().orElseThrow().fire();
             buttons.stream().filter(button -> button.getText().equals("Register")).findFirst().orElseThrow().fire();

@@ -4,6 +4,7 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
@@ -22,20 +23,25 @@ public class LandingView extends StackPane {
 
         VBox center = new VBox(18);
         center.setAlignment(Pos.CENTER);
-        center.setMaxWidth(460);
+        center.setMaxWidth(760);
         center.getStyleClass().add("landing-panel");
 
-        Label title = new Label("Student time table");
+        Label title = new Label("student time table");
         title.getStyleClass().add("brand-title");
+        title.setAlignment(Pos.CENTER);
+        title.setMaxWidth(Double.MAX_VALUE);
+        title.setMinWidth(Region.USE_PREF_SIZE);
 
         Button login = new Button("Log in");
         login.getStyleClass().add("primary-button");
-        login.setMaxWidth(Double.MAX_VALUE);
+        login.setPrefWidth(390);
+        login.setMaxWidth(390);
         login.setOnAction(e -> onLogin.run());
 
         Button register = new Button("Register");
         register.getStyleClass().add("secondary-button");
-        register.setMaxWidth(Double.MAX_VALUE);
+        register.setPrefWidth(390);
+        register.setMaxWidth(390);
         register.setOnAction(e -> onRegister.run());
 
         center.getChildren().addAll(title, login, register);
