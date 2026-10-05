@@ -6,6 +6,8 @@ services:
       MARIADB_USER: student
       MARIADB_PASSWORD: ${DB_PASSWORD:-student}
       MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-localroot}
+    ports:
+      - "127.0.0.1:3307:3306"
     volumes:
       - database-data:/var/lib/mysql
       - ./Database/create.sql:/docker-entrypoint-initdb.d/001-create.sql:ro
@@ -16,6 +18,7 @@ services:
       retries: 20
 
   application:
+    image: rthless/ohjelmistotuotantoprojekti-1-r2:latest
     build: .
     depends_on:
       database:

@@ -5,6 +5,7 @@ RUN apt-get update \
         libasound2t64 \
         libfontconfig1 \
         libfreetype6 \
+        libgl1 \
         libgtk-3-0t64 \
         libxi6 \
         libxrender1 \

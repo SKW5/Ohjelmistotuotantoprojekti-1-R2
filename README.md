@@ -75,6 +75,32 @@ docker compose up --build
 
 Pysäytä palvelut painamalla `Ctrl+C`. Tietokannan volyymi säilyy palveluiden pysäyttämisen jälkeen. Sen poistaminen poistaa myös tietokantaan tallennetut tiedot.
 
+## Docker Hub -kuvan käyttäminen
+
+Docker Hub -kuva sisältää JavaFX-sovelluksen; tietokanta käynnistetään tämän repositorion Compose-määrityksellä. Kloonaa repo, käynnistä Xming (tai muu X11-palvelin), luo `.env` yllä olevien ohjeiden mukaan ja suorita projektin juuressa:
+
+```powershell
+docker compose pull application
+docker compose up -d --no-build
+docker compose logs -f application
+```
+
+Uusimman kuvan hakeminen myöhemmin:
+
+```powershell
+docker compose pull application
+docker compose up -d --no-build
+```
+
+Kuvan ylläpitäjä voi rakentaa ja julkaista päivityksen Docker Hubiin:
+
+```powershell
+docker build -t rthless/ohjelmistotuotantoprojekti-1-r2:latest .
+docker push rthless/ohjelmistotuotantoprojekti-1-r2:latest
+```
+
+JavaFX-ikkunan näyttämiseen tarvitaan toimiva X11-yhteys. Älä avaa Xmingiä julkiseen verkkoon.
+
 
 ## Projektin rakenne
 
