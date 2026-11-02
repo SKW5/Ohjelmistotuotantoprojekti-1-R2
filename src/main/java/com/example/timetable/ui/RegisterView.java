@@ -1,5 +1,7 @@
 package com.example.timetable.ui;
 
+import com.example.timetable.i18n.I18n;
+
 import com.example.timetable.model.User;
 import com.example.timetable.service.RegisterUser;
 import javafx.geometry.Insets;
@@ -20,7 +22,12 @@ public class RegisterView extends StackPane {
             Runnable onLogin,
             Runnable onSkip
     ) {
+        I18n.orient(this);
         getStyleClass().add("auth-screen");
+        var languages = I18n.languageSelector();
+        StackPane.setAlignment(languages, Pos.TOP_LEFT);
+        StackPane.setMargin(languages, new Insets(18, 22, 0, 22));
+        getChildren().add(languages);
 
         Button close = closeButton(onSkip);
         StackPane.setAlignment(close, Pos.TOP_RIGHT);
@@ -31,30 +38,30 @@ public class RegisterView extends StackPane {
         card.setMaxWidth(390);
         card.getStyleClass().addAll("card", "auth-card", "login-card");
 
-        Label title = new Label("Register");
+        Label title = I18n.label("auth.register");
         title.getStyleClass().add("card-heading");
 
         TextField fullName = new TextField();
-        fullName.setPromptText("Username");
+        I18n.bind(fullName.promptTextProperty(), "auth.username");
         fullName.getStyleClass().add("field-input");
         fullName.setMaxWidth(Double.MAX_VALUE);
 
         TextField email = new TextField();
-        email.setPromptText("Email");
+        I18n.bind(email.promptTextProperty(), "auth.email");
         email.getStyleClass().add("field-input");
         email.setMaxWidth(Double.MAX_VALUE);
 
         PasswordField password = new PasswordField();
-        password.setPromptText("Password");
+        I18n.bind(password.promptTextProperty(), "auth.password");
         password.getStyleClass().add("field-input");
         password.setMaxWidth(Double.MAX_VALUE);
 
         PasswordField confirmPassword = new PasswordField();
-        confirmPassword.setPromptText("Confirm password");
+        I18n.bind(confirmPassword.promptTextProperty(), "auth.confirm");
         confirmPassword.getStyleClass().add("field-input");
         confirmPassword.setMaxWidth(Double.MAX_VALUE);
 
-        Button submit = new Button("Register");
+        Button submit = I18n.button("auth.register");
         submit.getStyleClass().add("primary-button");
         submit.setMaxWidth(Double.MAX_VALUE);
         submit.setOnAction(e -> {
@@ -63,48 +70,48 @@ public class RegisterView extends StackPane {
             String passwordValue = password.getText();
 
             if (username.isEmpty() || emailValue.isEmpty() || passwordValue.isEmpty()) {
-                showMessage(Alert.AlertType.WARNING, "Missing details", "Complete all fields.");
+                showMessage(Alert.AlertType.WARNING, "auth.missing", "auth.completeFields");
                 return;
             }
 
             if (!passwordValue.equals(confirmPassword.getText())) {
-                showMessage(Alert.AlertType.WARNING, "Passwords do not match", "Enter the same password in both password fields.");
+                showMessage(Alert.AlertType.WARNING, "auth.passwordMismatch", "auth.repeatPassword");
                 return;
             }
 
             if (registerUserService == null) {
-                showMessage(Alert.AlertType.ERROR, "Registration failed", "MariaDB is unavailable. Check the database connection.");
+                showMessage(Alert.AlertType.ERROR, "auth.registrationFailed", "auth.databaseUnavailable");
                 return;
             }
 
             User user = new User(username, emailValue, passwordValue);
             try {
                 if (!registerUserService.registerUser(user)) {
-                    showMessage(Alert.AlertType.ERROR, "Registration failed", "Enter a username, email, and password.");
+                    showMessage(Alert.AlertType.ERROR, "auth.registrationFailed", "auth.enterRegistration");
                     return;
                 }
             } catch (SQLException error) {
                 String message = error.getErrorCode() == 1062
-                        ? "That username or email is already registered."
-                        : "MariaDB rejected the registration: " + error.getMessage();
-                showMessage(Alert.AlertType.ERROR, "Registration failed", message);
+                        ? "auth.duplicate"
+                        : "auth.registrationError";
+                showMessage(Alert.AlertType.ERROR, "auth.registrationFailed", message);
                 return;
             }
 
-            showMessage(Alert.AlertType.INFORMATION, "Registration complete", "Your account was created successfully.");
+            showMessage(Alert.AlertType.INFORMATION, "auth.registrationComplete", "auth.accountCreated");
             onSkip.run();
         });
 
-        Button switchToLogin = new Button("Already have an account? Log in");
+        Button switchToLogin = I18n.button("auth.loginLink");
         switchToLogin.getStyleClass().add("link-button");
         switchToLogin.setOnAction(e -> onLogin.run());
 
         card.getChildren().addAll(
                 title,
-                labeledField("Username", fullName),
-                labeledField("Email", email),
-                labeledField("Password", password),
-                labeledField("Confirm password", confirmPassword),
+                labeledField("auth.username", fullName),
+                labeledField("auth.email", email),
+                labeledField("auth.password", password),
+                labeledField("auth.confirm", confirmPassword),
                 submit,
                 switchToLogin
         );
@@ -113,7 +120,7 @@ public class RegisterView extends StackPane {
     }
 
     private VBox labeledField(String labelText, TextField input) {
-        Label label = new Label(labelText);
+        Label label = I18n.label(labelText);
         label.getStyleClass().add("field-label");
 
         return new VBox(5, label, input);
@@ -121,15 +128,17 @@ public class RegisterView extends StackPane {
 
     private void showMessage(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
-        alert.setTitle(title);
+        I18n.bind(alert.titleProperty(), title);
         alert.setHeaderText(null);
-        alert.setContentText(message);
+        I18n.bind(alert.contentTextProperty(), message);
+        I18n.localizeAlert(alert);
         alert.showAndWait();
     }
 
     private Button closeButton(Runnable onSkip) {
-        Button close = new Button("✕");
+        Button close = I18n.button("common.close");
         close.getStyleClass().add("close-button");
+        I18n.bind(close.accessibleTextProperty(), "common.continueGuest");
         close.setOnAction(e -> onSkip.run());
         return close;
     }

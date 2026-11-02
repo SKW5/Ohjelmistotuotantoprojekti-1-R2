@@ -1,5 +1,7 @@
 package com.example.timetable;
 
+import com.example.timetable.i18n.I18n;
+
 import com.example.timetable.repository.eventRepository;
 import com.example.timetable.repository.loginRepository;
 import com.example.timetable.repository.profileRepository;
@@ -52,6 +54,7 @@ public class Main extends Application {
 
     @Override
     public void start(Stage stage) {
+        I18n.restoreLanguage();
         loadFonts();
         profileRepository = new profileRepository(this::openDatabaseConnection);
 
@@ -86,7 +89,7 @@ public class Main extends Application {
                 getClass().getResource("/styles.css").toExternalForm()
         );
 
-        stage.setTitle("Student Timetable");
+        I18n.bind(stage.titleProperty(), "app.title");
         stage.setMinWidth(950);
         stage.setMinHeight(600);
         stage.setScene(scene);
@@ -112,15 +115,13 @@ public class Main extends Application {
 
     private void showEventReminder(Event event) {
         Alert alert = new Alert(Alert.AlertType.INFORMATION);
-        alert.setTitle("Upcoming event");
+        I18n.bind(alert.titleProperty(), "reminder.title");
         alert.setHeaderText(event.getTitle());
 
         String location = event.getLocation();
-        String content = "Starts at " + event.getStart_time();
-        if (location != null && !location.isBlank()) {
-            content += "\nLocation: " + location;
-        }
-        alert.setContentText(content);
+        I18n.bind(alert.contentTextProperty(), () -> I18n.text("reminder.start", I18n.time(event.getStart_time()))
+                + (location != null && !location.isBlank() ? "\n" + I18n.text("reminder.location", location) : ""));
+        I18n.localizeAlert(alert);
         alert.show();
     }
 

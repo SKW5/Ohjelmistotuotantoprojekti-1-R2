@@ -1,5 +1,7 @@
 package com.example.timetable.ui;
 
+import com.example.timetable.i18n.I18n;
+
 import com.example.timetable.model.Event;
 import com.example.timetable.service.AddEvent;
 
@@ -84,7 +86,7 @@ public class AddEventDialog {
         Stage dialog = new Stage();
 
         dialog.initModality(Modality.APPLICATION_MODAL);
-        dialog.setTitle(eventToEdit == null ? "Add event" : "Edit event");
+        I18n.bind(dialog.titleProperty(), eventToEdit == null ? "event.addTitle" : "event.editTitle");
 
         VBox box = createContent(dialog, eventToEdit);
 
@@ -110,6 +112,7 @@ public class AddEventDialog {
     private VBox createContent(Stage dialog, Event eventToEdit) {
 
         VBox box = new VBox(14);
+        I18n.orient(box);
         boolean editMode = eventToEdit != null;
 
         box.setPadding(new Insets(26));
@@ -117,13 +120,13 @@ public class AddEventDialog {
 
         box.getStyleClass().addAll("dialog", "event-dialog");
 
-        Label title = new Label(editMode ? "Edit event" : "Add new event");
+        Label title = I18n.label(editMode ? "event.editTitle" : "event.newTitle");
         title.getStyleClass().addAll("section-title", "card-heading");
 
         // EVENT NAME
 
         TextField name = new TextField();
-        name.setPromptText("Event name");
+        I18n.bind(name.promptTextProperty(), "event.namePrompt");
         if (editMode) {
             name.setText(eventToEdit.getTitle());
         }
@@ -131,6 +134,7 @@ public class AddEventDialog {
         // DATE
 
         DatePicker datePicker = new DatePicker();
+        I18n.localize(datePicker);
 
         datePicker.setValue(
                 editMode ? eventToEdit.getEvent_date() : LocalDate.now()
@@ -141,6 +145,7 @@ public class AddEventDialog {
                         FXCollections.observableArrayList(START_TIMES)
                 );
 
+        I18n.localizeTimes(startTime);
         startTime.setValue("08:00");
         if (editMode && eventToEdit.getStart_time() != null) {
             startTime.setValue(eventToEdit.getStart_time().format(TIME_FORMAT));
@@ -155,6 +160,7 @@ public class AddEventDialog {
                         FXCollections.observableArrayList(END_TIMES)
                 );
 
+        I18n.localizeTimes(endTime);
         endTime.setValue("09:00");
         if (editMode && eventToEdit.getEnd_time() != null) {
             endTime.setValue(eventToEdit.getEnd_time().format(TIME_FORMAT));
@@ -166,9 +172,7 @@ public class AddEventDialog {
 
         TextField room = new TextField();
 
-        room.setPromptText(
-                "Room / location"
-        );
+        I18n.bind(room.promptTextProperty(), "event.locationPrompt");
         if (editMode) {
             room.setText(eventToEdit.getLocation());
         }
@@ -180,6 +184,7 @@ public class AddEventDialog {
                         FXCollections.observableArrayList(COLORS)
                 );
 
+        I18n.localizeColors(color);
         color.setValue("Blue");
         if (editMode) {
             color.setValue(displayColor(eventToEdit.getColor()));
@@ -189,22 +194,22 @@ public class AddEventDialog {
         // LABELLED CONTROLS
 
         VBox nameBox =
-                labeled("Event", name);
+                labeled("event.name", name);
 
         VBox dateBox =
-                labeled("Date", datePicker);
+                labeled("event.date", datePicker);
 
         VBox startBox =
-                labeled("Start time", startTime);
+                labeled("event.start", startTime);
 
         VBox endBox =
-                labeled("End time", endTime);
+                labeled("event.end", endTime);
 
         VBox roomBox =
-                labeled("Location", room);
+                labeled("event.location", room);
 
         VBox colorBox =
-                labeled("Color", color);
+                labeled("event.color", color);
 
         Label message = new Label("");
         message.getStyleClass().add("status-error");
@@ -221,18 +226,18 @@ public class AddEventDialog {
         );
 
         Button cancel =
-                new Button("Cancel");
+                I18n.button("common.cancel");
         cancel.getStyleClass().add("secondary-button");
 
         Button save =
-                new Button(editMode ? "Save" : "Add");
+                I18n.button(editMode ? "common.save" : "common.add");
 
         save.getStyleClass().add(
                 "primary-button"
         );
 
         Button delete =
-                new Button("Delete");
+                I18n.button("common.delete");
         delete.getStyleClass().addAll("secondary-button", "danger-button");
         delete.setVisible(editMode);
         delete.setManaged(editMode);
@@ -257,17 +262,24 @@ public class AddEventDialog {
                         "-fx-border-color: red;"
                 );
 
-                message.setText("Event name is required.");
+                I18n.bind(message.textProperty(), "event.nameRequired");
                 return;
             }
             if (eventName.length() > AddEvent.MAX_TITLE_LENGTH) {
                 name.setStyle("-fx-border-color: red;");
-                message.setText("Event name must be at most " + AddEvent.MAX_TITLE_LENGTH + " characters.");
+                I18n.bind(message.textProperty(), "event.nameLength", AddEvent.MAX_TITLE_LENGTH);
                 return;
             }
 
             name.setStyle("");
 
+            // Commit manually typed dates using the selected locale before validation.
+            try {
+                datePicker.commitValue();
+            } catch (RuntimeException invalidDate) {
+                I18n.bind(message.textProperty(), "event.invalid");
+                return;
+            }
             // Get date
             var eventDate =
                     datePicker.getValue();
@@ -278,7 +290,7 @@ public class AddEventDialog {
                         "-fx-border-color: red;"
                 );
 
-                message.setText("Date is required.");
+                I18n.bind(message.textProperty(), "event.dateRequired");
                 return;
             }
 
@@ -305,10 +317,10 @@ public class AddEventDialog {
                     );
 
                     System.err.println(
-                            "End time must be after start time."
+                            "event.endAfterStart"
                     );
 
-                    message.setText("End time must be after start time.");
+                    I18n.bind(message.textProperty(), "event.endAfterStart");
                     return;
                 }
 
@@ -317,7 +329,7 @@ public class AddEventDialog {
                 String location = room.getText() == null ? "" : room.getText().trim();
                 if (location.length() > AddEvent.MAX_LOCATION_LENGTH) {
                     room.setStyle("-fx-border-color: red;");
-                    message.setText("Location must be at most " + AddEvent.MAX_LOCATION_LENGTH + " characters.");
+                    I18n.bind(message.textProperty(), "event.locationLength", AddEvent.MAX_LOCATION_LENGTH);
                     return;
                 }
                 room.setStyle("");
@@ -327,7 +339,7 @@ public class AddEventDialog {
                         : color.getValue().toLowerCase(Locale.ROOT);
                 if (!AddEvent.VALID_COLORS.contains(selectedColor)) {
                     color.setStyle("-fx-border-color: red;");
-                    message.setText("Choose a valid event color.");
+                    I18n.bind(message.textProperty(), "event.invalidColor");
                     return;
                 }
                 color.setStyle("");
@@ -345,7 +357,7 @@ public class AddEventDialog {
                 save.setDisable(true);
                 cancel.setDisable(true);
                 delete.setDisable(true);
-                message.setText("");
+                I18n.bind(message.textProperty(), "");
 
                 Thread worker = new Thread(() -> {
                     boolean saved = editMode
@@ -359,9 +371,9 @@ public class AddEventDialog {
                             onSaved.run();
                             dialog.close();
                         } else {
-                            message.setText(editMode
-                                    ? "Could not update this event. It may no longer exist or belongs to another user."
-                                    : "Failed to save event. Check the details and try again.");
+                            I18n.bind(message.textProperty(), editMode
+                                    ? "event.updateFailed"
+                                    : "event.saveFailed");
                         }
                     });
                 }, editMode ? "event-update" : "event-save");
@@ -372,13 +384,13 @@ public class AddEventDialog {
 
                 ex.printStackTrace();
 
-                message.setText("Invalid event data.");
+                I18n.bind(message.textProperty(), "event.invalid");
             }
         });
 
         delete.setOnAction(e -> {
             if (!editMode || userId <= 0) {
-                message.setText("Log in to delete events.");
+                I18n.bind(message.textProperty(), "event.loginToDelete");
                 return;
             }
             if (!deleteConfirmation.confirm(eventToEdit)) {
@@ -388,7 +400,7 @@ public class AddEventDialog {
             save.setDisable(true);
             cancel.setDisable(true);
             delete.setDisable(true);
-            message.setText("");
+            I18n.bind(message.textProperty(), "");
 
             Thread worker = new Thread(() -> {
                 boolean deleted;
@@ -408,7 +420,7 @@ public class AddEventDialog {
                         onSaved.run();
                         dialog.close();
                     } else {
-                        message.setText("Could not delete this event. It may no longer exist or belongs to another user.");
+                        I18n.bind(message.textProperty(), "event.deleteFailed");
                     }
                 });
             }, "event-delete");
@@ -453,7 +465,7 @@ public class AddEventDialog {
     ) {
 
         Label label =
-                new Label(text);
+                I18n.label(text);
 
         label.getStyleClass().add(
                 "small-label"
@@ -485,12 +497,13 @@ public class AddEventDialog {
 
     private static boolean confirmDeleteWithAlert(Event event) {
         Alert confirmation = new Alert(Alert.AlertType.CONFIRMATION);
-        confirmation.setTitle("Delete event");
-        confirmation.setHeaderText("Delete this event?");
+        I18n.orient(confirmation.getDialogPane());
+        I18n.bind(confirmation.titleProperty(), "event.deleteTitle");
+        I18n.bind(confirmation.headerTextProperty(), "event.deleteConfirm");
         confirmation.setContentText(event == null ? "" : event.getTitle());
 
-        ButtonType cancel = new ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE);
-        ButtonType delete = new ButtonType("Delete", ButtonBar.ButtonData.OK_DONE);
+        ButtonType cancel = new ButtonType(I18n.text("common.cancel"), ButtonBar.ButtonData.CANCEL_CLOSE);
+        ButtonType delete = new ButtonType(I18n.text("common.delete"), ButtonBar.ButtonData.OK_DONE);
         confirmation.getButtonTypes().setAll(cancel, delete);
 
         Optional<ButtonType> result = confirmation.showAndWait();

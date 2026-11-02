@@ -1,6 +1,6 @@
 # Opiskelijan lukujärjestys
 
-JavaFX-työpöytäsovellus opiskelijan viikoittaisen lukujärjestyksen ja käyttäjäprofiilin hallintaan. Sovellus käyttää MariaDB-tietokantaa käyttäjien ja tapahtumien tallentamiseen. Käyttöliittymä on tällä hetkellä englanninkielinen.
+JavaFX-työpöytäsovellus opiskelijan viikoittaisen lukujärjestyksen ja käyttäjäprofiilin hallintaan. Sovellus käyttää MariaDB-tietokantaa käyttäjien ja tapahtumien tallentamiseen. Käyttöliittymän kielet ovat englanti, suomi, arabia (RTL) ja japani. Kieltä voi vaihtaa kirjautumisnäkymissä, yläpalkissa ja asetuksissa. Katso [lokalisoinnin dokumentaatio](Documents/LOCALIZATION.md) ja [käännettävien tekstien luettelo](Documents/LOCALIZATION-STRINGS.md).
 
 ## Toiminnot
 

@@ -1,5 +1,7 @@
 package com.example.timetable.ui;
 
+import com.example.timetable.i18n.I18n;
+
 import com.example.timetable.model.UserProfile;
 import com.example.timetable.repository.profileRepository;
 import javafx.concurrent.Task;
@@ -57,15 +59,14 @@ public class SettingsView extends VBox {
         this.scheduleRemindersEnabled = scheduleRemindersEnabled;
         this.onScheduleRemindersChanged = onScheduleRemindersChanged;
 
+        I18n.orient(this);
         setSpacing(24);
         setPadding(new Insets(32));
 
-        Label title = new Label("System settings");
+        Label title = I18n.label("settings.title");
         title.getStyleClass().add("page-title");
 
-        Label subtitle = new Label(
-                "Manage your timetable and display preferences"
-        );
+        Label subtitle = I18n.label("settings.subtitle");
         subtitle.getStyleClass().add("muted");
 
         HBox cards = new HBox(24);
@@ -76,23 +77,23 @@ public class SettingsView extends VBox {
 
         cards.getChildren().addAll(profile, notifications);
 
-        getChildren().addAll(title, subtitle, cards);
+        getChildren().addAll(title, subtitle, I18n.languageSelector(), cards);
 
         if (isGuest()) {
             setProfileInputsDisabled(true);
             saveButton.setDisable(true);
-            showInfo("Log in to edit and save your profile.");
+            showInfo("profile.loginRequired");
         } else {
             loadProfile();
         }
     }
 
     private VBox createProfileCard() {
-        usernameField = profileField("Username");
-        emailField = profileField("Email");
-        majorField = profileField("Major");
+        usernameField = profileField("auth.username");
+        emailField = profileField("auth.email");
+        majorField = profileField("profile.major");
 
-        saveButton = new Button("Save");
+        saveButton = I18n.button("common.save");
         saveButton.getStyleClass().add("primary-button");
         saveButton.setMaxWidth(Double.MAX_VALUE);
         saveButton.setOnAction(event -> saveProfile());
@@ -102,11 +103,11 @@ public class SettingsView extends VBox {
         profileMessage.setWrapText(true);
 
         return createSettingsCard(
-                "About the profile",
-                "Basic information used by the timetable.",
-                field("Username", usernameField),
-                field("Email", emailField),
-                field("Major", majorField),
+                "profile.title",
+                "profile.subtitle",
+                field("auth.username", usernameField),
+                field("auth.email", emailField),
+                field("profile.major", majorField),
                 saveButton,
                 profileMessage
         );
@@ -114,10 +115,10 @@ public class SettingsView extends VBox {
 
     private VBox createNotificationCard() {
         return createSettingsCard(
-                "Notification settings",
-                "Choose how you want to be notified.",
-                toggleRow("Email notifications (not configured)", false, ignored -> { }, true),
-                toggleRow("Schedule reminders", scheduleRemindersEnabled, onScheduleRemindersChanged, false)
+                "notifications.title",
+                "notifications.subtitle",
+                toggleRow("notifications.email", false, ignored -> { }, true),
+                toggleRow("notifications.reminders", scheduleRemindersEnabled, onScheduleRemindersChanged, false)
         );
     }
 
@@ -131,10 +132,10 @@ public class SettingsView extends VBox {
         card.setPadding(new Insets(22));
         card.setPrefWidth(420);
 
-        Label titleLabel = new Label(title);
+        Label titleLabel = I18n.label(title);
         titleLabel.getStyleClass().addAll("section-title", "card-heading");
 
-        Label subtitleLabel = new Label(subtitle);
+        Label subtitleLabel = I18n.label(subtitle);
         subtitleLabel.getStyleClass().add("muted");
 
         card.getChildren().addAll(titleLabel, subtitleLabel);
@@ -145,7 +146,7 @@ public class SettingsView extends VBox {
 
     private TextField profileField(String prompt) {
         TextField field = new TextField();
-        field.setPromptText(prompt);
+        I18n.bind(field.promptTextProperty(), prompt);
         field.getStyleClass().add("field-input");
         field.setMaxWidth(Double.MAX_VALUE);
         return field;
@@ -154,7 +155,7 @@ public class SettingsView extends VBox {
     private VBox field(String label, TextField field) {
         VBox box = new VBox(6);
 
-        Label labelNode = new Label(label);
+        Label labelNode = I18n.label(label);
         labelNode.getStyleClass().addAll("small-label", "field-label");
 
         box.getChildren().addAll(labelNode, field);
@@ -163,7 +164,7 @@ public class SettingsView extends VBox {
 
     private void loadProfile() {
         setProfileInputsDisabled(true);
-        showInfo("Loading profile...");
+        showInfo("profile.loading");
 
         Task<UserProfile> task = new Task<>() {
             @Override
@@ -175,7 +176,7 @@ public class SettingsView extends VBox {
         task.setOnSucceeded(event -> {
             UserProfile profile = task.getValue();
             if (profile == null) {
-                showError("Profile was not found. Log in again.");
+                showError("profile.notFound");
                 saveButton.setDisable(true);
                 return;
             }
@@ -189,7 +190,7 @@ public class SettingsView extends VBox {
 
         task.setOnFailed(event -> {
             setProfileInputsDisabled(false);
-            showError("Could not load profile from MariaDB. Try opening Settings again.");
+            showError("profile.loadFailed");
         });
 
         Thread loader = new Thread(task, "profile-load");
@@ -220,7 +221,7 @@ public class SettingsView extends VBox {
         );
 
         setProfileInputsDisabled(true);
-        showInfo("Saving profile...");
+        showInfo("profile.saving");
 
         Task<Boolean> task = new Task<>() {
             @Override
@@ -232,13 +233,13 @@ public class SettingsView extends VBox {
         task.setOnSucceeded(event -> {
             if (!task.getValue()) {
                 setProfileInputsDisabled(false);
-                showError("Profile was not updated. Log in again and retry.");
+                showError("profile.notUpdated");
                 return;
             }
 
             setProfileInputsDisabled(false);
             onProfileSaved.accept(profile);
-            showSuccess("Profile saved.");
+            showSuccess("profile.saved");
         });
 
         task.setOnFailed(event -> {
@@ -253,22 +254,22 @@ public class SettingsView extends VBox {
 
     private String validateProfile(String username, String email, String major) {
         if (username.isEmpty()) {
-            return "Username is required.";
+            return "profile.usernameRequired";
         }
         if (email.isEmpty()) {
-            return "Email is required.";
+            return "profile.emailRequired";
         }
         if (username.length() > 50) {
-            return "Username must be 50 characters or shorter.";
+            return "profile.usernameLength";
         }
         if (email.length() > 100) {
-            return "Email must be 100 characters or shorter.";
+            return "profile.emailLength";
         }
         if (!EMAIL_PATTERN.matcher(email).matches()) {
-            return "Enter a valid email address.";
+            return "profile.invalidEmail";
         }
         if (major.length() > 100) {
-            return "Major must be 100 characters or shorter.";
+            return "profile.majorLength";
         }
         return null;
     }
@@ -276,9 +277,9 @@ public class SettingsView extends VBox {
     private String profileSaveError(Throwable error) {
         if (error instanceof SQLException sqlError
                 && (sqlError.getErrorCode() == 1062 || "23000".equals(sqlError.getSQLState()))) {
-            return "That username or email is already used by another account.";
+            return "profile.duplicate";
         }
-        return "Could not save profile to MariaDB. Your changes are still here; try again.";
+        return "profile.saveFailed";
     }
 
     private void setProfileInputsDisabled(boolean disabled) {
@@ -294,7 +295,7 @@ public class SettingsView extends VBox {
 
     private void showInfo(String message) {
         profileMessage.getStyleClass().removeAll("status-error", "status-success");
-        profileMessage.setText(message);
+        I18n.bind(profileMessage.textProperty(), message);
     }
 
     private void showError(String message) {
@@ -302,7 +303,11 @@ public class SettingsView extends VBox {
         if (!profileMessage.getStyleClass().contains("status-error")) {
             profileMessage.getStyleClass().add("status-error");
         }
-        profileMessage.setText(message);
+        switch (message) {
+            case "profile.usernameLength" -> I18n.bind(profileMessage.textProperty(), message, 50);
+            case "profile.emailLength", "profile.majorLength" -> I18n.bind(profileMessage.textProperty(), message, 100);
+            default -> I18n.bind(profileMessage.textProperty(), message);
+        }
     }
 
     private void showSuccess(String message) {
@@ -310,7 +315,7 @@ public class SettingsView extends VBox {
         if (!profileMessage.getStyleClass().contains("status-success")) {
             profileMessage.getStyleClass().add("status-success");
         }
-        profileMessage.setText(message);
+        I18n.bind(profileMessage.textProperty(), message);
     }
 
     private HBox toggleRow(String text, boolean selected) {
@@ -326,7 +331,7 @@ public class SettingsView extends VBox {
         HBox row = new HBox(10);
         row.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
 
-        Label label = new Label(text);
+        Label label = I18n.label(text);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);

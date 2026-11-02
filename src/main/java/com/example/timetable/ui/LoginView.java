@@ -1,5 +1,7 @@
 package com.example.timetable.ui;
 
+import com.example.timetable.i18n.I18n;
+
 import com.example.timetable.repository.loginRepository;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -20,7 +22,12 @@ public class LoginView extends StackPane {
             Runnable onClose,
             Consumer<String> onLoginSuccess
     ) {
+        I18n.orient(this);
         getStyleClass().add("auth-screen");
+        var languages = I18n.languageSelector();
+        StackPane.setAlignment(languages, Pos.TOP_LEFT);
+        StackPane.setMargin(languages, new Insets(18, 22, 0, 22));
+        getChildren().add(languages);
 
         Button close = closeButton(onClose);
         StackPane.setAlignment(close, Pos.TOP_RIGHT);
@@ -31,20 +38,20 @@ public class LoginView extends StackPane {
         card.setMaxWidth(390);
         card.getStyleClass().addAll("card", "auth-card", "login-card");
 
-        Label title = new Label("Log in");
+        Label title = I18n.label("auth.login");
         title.getStyleClass().add("card-heading");
 
         TextField email = new TextField();
-        email.setPromptText("Email");
+        I18n.bind(email.promptTextProperty(), "auth.email");
         email.getStyleClass().add("field-input");
         email.setMaxWidth(Double.MAX_VALUE);
 
         PasswordField password = new PasswordField();
-        password.setPromptText("Password");
+        I18n.bind(password.promptTextProperty(), "auth.password");
         password.getStyleClass().add("field-input");
         password.setMaxWidth(Double.MAX_VALUE);
 
-        Button submit = new Button("Log In");
+        Button submit = I18n.button("auth.submit");
         submit.getStyleClass().add("primary-button");
         submit.setMaxWidth(Double.MAX_VALUE);
         submit.setOnAction(e -> {
@@ -52,26 +59,26 @@ public class LoginView extends StackPane {
             String passwordValue = password.getText();
 
             if (emailValue.isEmpty() || passwordValue.isEmpty()) {
-                showMessage(Alert.AlertType.WARNING, "Missing details", "Enter your email and password.");
+                showMessage(Alert.AlertType.WARNING, "auth.missing", "auth.enterCredentials");
                 return;
             }
 
             if (loginRepository == null || !loginRepository.loginUser(emailValue, passwordValue)) {
-                showMessage(Alert.AlertType.ERROR, "Login failed", "Check your email, password, and MariaDB connection.");
+                showMessage(Alert.AlertType.ERROR, "auth.failed", "auth.checkCredentials");
                 return;
             }
 
             onLoginSuccess.accept(emailValue);
         });
 
-        Button switchToRegister = new Button("Don't have an account? Register");
+        Button switchToRegister = I18n.button("auth.registerLink");
         switchToRegister.getStyleClass().add("link-button");
         switchToRegister.setOnAction(e -> onRegister.run());
 
         card.getChildren().addAll(
                 title,
-                labeledField("Email", email),
-                labeledField("Password", password),
+                labeledField("auth.email", email),
+                labeledField("auth.password", password),
                 submit,
                 switchToRegister
         );
@@ -80,7 +87,7 @@ public class LoginView extends StackPane {
     }
 
     private VBox labeledField(String labelText, TextField input) {
-        Label label = new Label(labelText);
+        Label label = I18n.label(labelText);
         label.getStyleClass().add("field-label");
 
         return new VBox(5, label, input);
@@ -88,15 +95,17 @@ public class LoginView extends StackPane {
 
     private void showMessage(Alert.AlertType type, String title, String message) {
         Alert alert = new Alert(type);
-        alert.setTitle(title);
+        I18n.bind(alert.titleProperty(), title);
         alert.setHeaderText(null);
-        alert.setContentText(message);
+        I18n.bind(alert.contentTextProperty(), message);
+        I18n.localizeAlert(alert);
         alert.showAndWait();
     }
 
     private Button closeButton(Runnable onSkip) {
-        Button close = new Button("✕");
+        Button close = I18n.button("common.close");
         close.getStyleClass().add("close-button");
+        I18n.bind(close.accessibleTextProperty(), "common.continueGuest");
         close.setOnAction(e -> onSkip.run());
         return close;
     }

@@ -1,5 +1,7 @@
 package com.example.timetable.ui;
 
+import com.example.timetable.i18n.I18n;
+
 import com.example.timetable.service.AddEvent;
 import com.example.timetable.model.Event;
 import javafx.application.Platform;
@@ -23,7 +25,7 @@ import java.util.List;
 
 public class TimetableView extends VBox {
 
-    private static final String[] DAYS = {"MON", "TUE", "WED", "THU", "FRI", "SAT", "SUN"};
+    private static final DayOfWeek[] DAYS = DayOfWeek.values();
     private static final String[] TIMES = {
             "00:00", "01:00", "02:00", "03:00", "04:00", "05:00",
             "06:00", "07:00", "08:00", "09:00", "10:00", "11:00",
@@ -40,6 +42,7 @@ public class TimetableView extends VBox {
         this.addEventService = addEventService;
         this.userId = userId;
 
+        I18n.orient(this);
         setSpacing(24);
         setPadding(new Insets(32));
 
@@ -59,10 +62,10 @@ public class TimetableView extends VBox {
 
         VBox titleBox = new VBox(4);
 
-        Label title = new Label("Weekly timetable");
+        Label title = I18n.label("calendar.title");
         title.getStyleClass().add("page-title");
 
-        Label subtitle = new Label("Your classes and events for this week");
+        Label subtitle = I18n.label("calendar.subtitle");
         subtitle.getStyleClass().add("muted");
 
         titleBox.getChildren().addAll(title, subtitle);
@@ -70,7 +73,7 @@ public class TimetableView extends VBox {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        Button add = new Button("+ New event");
+        Button add = I18n.button("calendar.new");
         add.getStyleClass().addAll("dark-button", "primary-button", "new-event-button");
         add.setDisable(userId <= 0);
         add.setOnAction(e -> {
@@ -113,7 +116,7 @@ public class TimetableView extends VBox {
 
     private void createRows(GridPane grid) {
         for (int row = 0; row <= TIMES.length; row++) {
-            grid.getRowConstraints().add(new RowConstraints(40));
+            grid.getRowConstraints().add(new RowConstraints(row == 0 ? 56 : 40));
         }
     }
 
@@ -123,7 +126,12 @@ public class TimetableView extends VBox {
         grid.add(empty, 0, 0);
 
         for (int col = 0; col < DAYS.length; col++) {
-            Label day = new Label(spacedDayLabel(DAYS[col]));
+            LocalDate date = LocalDate.now().with(DayOfWeek.MONDAY).plusDays(col);
+            Label day = new Label();
+            day.setWrapText(true);
+            I18n.bind(day.textProperty(), () -> I18n.text("calendar.day",
+                    date.getDayOfWeek().getDisplayName(java.time.format.TextStyle.SHORT, I18n.locale()),
+                    I18n.date(date)));
             day.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
             day.setAlignment(Pos.CENTER);
             day.getStyleClass().addAll("day-header", "day-short");
@@ -133,7 +141,9 @@ public class TimetableView extends VBox {
 
     private void createTimeLabels(GridPane grid) {
         for (int row = 0; row < TIMES.length; row++) {
-            Label time = new Label(TIMES[row]);
+            java.time.LocalTime hour = java.time.LocalTime.parse(TIMES[row]);
+            Label time = new Label();
+            I18n.bind(time.textProperty(), () -> I18n.time(hour));
             time.setAlignment(Pos.TOP_CENTER);
             time.setMaxSize(Double.MAX_VALUE, Double.MAX_VALUE);
             time.getStyleClass().add("time-label");
@@ -206,7 +216,9 @@ public class TimetableView extends VBox {
         Label nameLabel = new Label(calendarEvent.getTitle());
         nameLabel.getStyleClass().add("event-name");
 
-        Label timeLabel = new Label(time);
+        Label timeLabel = new Label();
+        I18n.bind(timeLabel.textProperty(), () -> I18n.text("calendar.range",
+                I18n.time(calendarEvent.getStart_time()), I18n.time(calendarEvent.getEnd_time())));
         timeLabel.getStyleClass().add("event-time");
 
         Label roomLabel = new Label(calendarEvent.getLocation());
@@ -220,7 +232,5 @@ public class TimetableView extends VBox {
         calendarScroll.setContent(createCalendar());
     }
 
-    private String spacedDayLabel(String day) {
-        return String.join(" ", day.split(""));
-    }
+
 }

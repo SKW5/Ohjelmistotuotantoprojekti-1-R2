@@ -1,5 +1,7 @@
 package com.example.timetable.ui;
 
+import com.example.timetable.i18n.I18n;
+
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
@@ -23,22 +25,20 @@ public class HeaderView extends HBox {
             String currentUserName,
             Runnable onLogout
     ) {
-        setSpacing(28);
+        I18n.orient(this);
+        setSpacing(14);
         setAlignment(Pos.CENTER_LEFT);
         setPadding(new Insets(14, 22, 14, 22));
         getStyleClass().add("header");
 
-        Label logo = new Label("Student Timetable");
+        Label logo = I18n.label("app.title");
         logo.getStyleClass().add("logo");
 
-        Button timetable = navButton("Timetable");
-        Button settings = navButton("Settings");
+        Button timetable = navButton("nav.timetable");
+        Button settings = navButton("nav.settings");
 
-        userStatus = new Label(
-                currentUserName != null && !currentUserName.isBlank()
-                        ? "Logged in: " + currentUserName
-                        : "Not logged in"
-        );
+        userStatus = new Label();
+        bindUserStatus(currentUserName);
         userStatus.getStyleClass().add("user-status");
 
         avatar = createAvatarButton(currentUserName, onLogin, onRegister, onLogout);
@@ -57,22 +57,23 @@ public class HeaderView extends HBox {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        getChildren().addAll(logo, timetable, settings, spacer, userStatus, avatar);
+        getChildren().addAll(logo, timetable, settings, spacer, I18n.languageSelector(), userStatus, avatar);
     }
 
     public void updateCurrentUserName(String currentUserName) {
-        userStatus.setText(
-                currentUserName != null && !currentUserName.isBlank()
-                        ? "Logged in: " + currentUserName
-                        : "Not logged in"
-        );
-        avatar.setText(currentUserName != null && !currentUserName.isBlank()
+        bindUserStatus(currentUserName);
+        I18n.bind(avatar.textProperty(), () -> currentUserName != null && !currentUserName.isBlank()
                 ? currentUserName.substring(0, 1).toUpperCase()
-                : "ST");
+                : I18n.text("auth.avatar"));
+    }
+
+    private void bindUserStatus(String name) {
+        I18n.bind(userStatus.textProperty(), () -> name != null && !name.isBlank()
+                ? I18n.text("auth.loggedIn", name) : I18n.text("auth.guest"));
     }
 
     private Button navButton(String text) {
-        Button button = new Button(text);
+        Button button = I18n.button(text);
         button.getStyleClass().addAll("nav-button", "nav-tab");
         return button;
     }
@@ -88,9 +89,10 @@ public class HeaderView extends HBox {
     private Button createAvatarButton(String currentUserName, Runnable onLogin, Runnable onRegister, Runnable onLogout) {
         String avatarText = currentUserName != null && !currentUserName.isBlank()
                 ? currentUserName.substring(0, 1).toUpperCase()
-                : "ST";
+                : I18n.text("auth.avatar");
 
         Button avatar = new Button(avatarText);
+        I18n.bind(avatar.textProperty(), () -> currentUserName != null && !currentUserName.isBlank() ? currentUserName.substring(0, 1).toUpperCase(I18n.locale()) : I18n.text("auth.avatar"));
         avatar.getStyleClass().add("avatar-button");
 
         ContextMenu profileMenu = new ContextMenu();
@@ -98,13 +100,13 @@ public class HeaderView extends HBox {
         profileMenu.setAutoHide(true);
 
         if (currentUserName != null && !currentUserName.isBlank()) {
-            MenuItem logout = new MenuItem("Log out");
+            MenuItem logout = I18n.menuitem("auth.logout");
             logout.getStyleClass().add("profile-menu-item");
             logout.setOnAction(e -> onLogout.run());
             profileMenu.getItems().add(logout);
         } else {
-            MenuItem login = new MenuItem("Log in");
-            MenuItem register = new MenuItem("Register");
+            MenuItem login = I18n.menuitem("auth.login");
+            MenuItem register = I18n.menuitem("auth.register");
             login.getStyleClass().add("profile-menu-item");
             register.getStyleClass().add("profile-menu-item");
 
