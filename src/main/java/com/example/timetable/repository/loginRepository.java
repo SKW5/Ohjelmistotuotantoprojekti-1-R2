@@ -1,6 +1,6 @@
 package com.example.timetable.repository;
 
-import com.example.timetable.service.passwordUtil;
+import com.example.timetable.service.PasswordUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -23,7 +23,7 @@ public class loginRepository {
 
             try (ResultSet result = statement.executeQuery()) {
                 return result.next()
-                        && passwordUtil.verifyPassword(password, result.getString("password_hash"));
+                        && PasswordUtil.verifyPassword(password, result.getString("password_hash"));
             }
         } catch (SQLException e) {
             System.err.println("Error logging in: " + e.getMessage());

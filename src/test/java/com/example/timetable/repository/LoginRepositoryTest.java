@@ -1,6 +1,6 @@
 package com.example.timetable.repository;
 
-import com.example.timetable.service.passwordUtil;
+import com.example.timetable.service.PasswordUtil;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class LoginRepositoryTest {
     @Test
     void loginChecksPasswordForFoundAccount() {
-        String hash = passwordUtil.hashPassword("secret");
+        String hash = PasswordUtil.hashPassword("secret");
         AtomicReference<String> queriedEmail = new AtomicReference<>();
         loginRepository repository = new loginRepository(connectionReturning(
                 resultSet(true, hash, null), queriedEmail, null));
@@ -27,7 +27,7 @@ class LoginRepositoryTest {
     @Test
     void loginRejectsWrongPasswordAndMissingAccount() {
         loginRepository wrongPassword = new loginRepository(connectionReturning(
-                resultSet(true, passwordUtil.hashPassword("secret"), null), new AtomicReference<>(), null));
+                resultSet(true, PasswordUtil.hashPassword("secret"), null), new AtomicReference<>(), null));
         loginRepository missingUser = new loginRepository(connectionReturning(
                 resultSet(false, null, null), new AtomicReference<>(), null));
 

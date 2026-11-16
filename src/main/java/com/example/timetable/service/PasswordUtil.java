@@ -2,7 +2,7 @@ package com.example.timetable.service;
 
 import at.favre.lib.crypto.bcrypt.BCrypt;
 
-public class passwordUtil {
+public class PasswordUtil {
 
     public static String hashPassword(String password) {
         return BCrypt.withDefaults()

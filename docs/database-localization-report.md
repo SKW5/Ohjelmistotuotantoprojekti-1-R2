@@ -77,3 +77,9 @@ Docker startup and migration on MariaDB 11.4 remain unverified locally.
 
 Final full-suite rerun with DB_LOCALIZATION_TEST=true: **69 tests, 0 failures,
 0 errors**, including the live MariaDB and headless JavaFX locale-switch test.
+
+## Sprint 6 section 3 follow-up
+
+The [Sprint 6 report](sprint-6-report.md#3-code-clean-up-and-refactoring) records
+cleanup changes and current checkout test counts separately from the historical
+localization run above.

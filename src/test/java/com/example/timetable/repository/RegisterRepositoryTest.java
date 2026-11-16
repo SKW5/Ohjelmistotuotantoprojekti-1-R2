@@ -1,7 +1,7 @@
 package com.example.timetable.repository;
 
 import com.example.timetable.model.User;
-import com.example.timetable.service.passwordUtil;
+import com.example.timetable.service.PasswordUtil;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Proxy;
@@ -24,7 +24,7 @@ class RegisterRepositoryTest {
         assertEquals("ada@example.com", parameters.get(2));
         String storedHash = (String) parameters.get(3);
         assertNotEquals("secret", storedHash);
-        assertTrue(passwordUtil.verifyPassword("secret", storedHash));
+        assertTrue(PasswordUtil.verifyPassword("secret", storedHash));
     }
 
     @Test

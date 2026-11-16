@@ -20,7 +20,6 @@ import javafx.scene.layout.VBox;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class TimetableView extends VBox {
@@ -36,7 +35,6 @@ public class TimetableView extends VBox {
     private final AddEvent addEventService;
     private final int userId;
     private final ScrollPane calendarScroll = new ScrollPane();
-    private static final String[] EVENT_STYLES = {"blue", "green", "yellow", "peach", "purple"};
 
     public TimetableView(AddEvent addEventService, int userId) {
         this.addEventService = addEventService;
@@ -178,7 +176,6 @@ public class TimetableView extends VBox {
     }
 
     private void addDatabaseEvents(GridPane grid, List<Event> events) {
-        DateTimeFormatter timeFormat = DateTimeFormatter.ofPattern("HH:mm");
 
         for (Event event : events) {
             int day = event.getEvent_date().getDayOfWeek().getValue() - 1;
@@ -189,9 +186,7 @@ public class TimetableView extends VBox {
 
             if (day < 0 || day >= DAYS.length || firstSlot < 0 || firstSlot >= TIMES.length) continue;
             int rowSpan = Math.max(1, Math.min(TIMES.length - firstSlot, lastSlot - firstSlot));
-            addEvent(grid, day, firstSlot, rowSpan, event,
-                    event.getStart_time().format(timeFormat) + "-" + event.getEnd_time().format(timeFormat),
-                    event.getColor());
+            addEvent(grid, day, firstSlot, rowSpan, event, event.getColor());
         }
     }
 
@@ -201,7 +196,6 @@ public class TimetableView extends VBox {
             int row,
             int rowSpan,
             Event calendarEvent,
-            String time,
             String style
     ) {
         VBox event = new VBox(1);

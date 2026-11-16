@@ -1,7 +1,7 @@
 package com.example.timetable.repository;
 
 import com.example.timetable.model.User;
-import com.example.timetable.service.passwordUtil;
+import com.example.timetable.service.PasswordUtil;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -19,7 +19,7 @@ public class register {
         String sql = "INSERT INTO student_timetable.users (username, email ,password_hash) VALUES (?, ?, ?)";
 
         try (PreparedStatement statement = connection.prepareStatement(sql)) {
-            String hashedPassword = passwordUtil.hashPassword(user.getPassword_hash());
+            String hashedPassword = PasswordUtil.hashPassword(user.getPassword_hash());
             statement.setString(1, user.getUsername());
             statement.setString(2, user.getEmail());
             statement.setString(3, hashedPassword);

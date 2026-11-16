@@ -140,32 +140,10 @@ public class AddEventDialog {
                 editMode ? eventToEdit.getEvent_date() : LocalDate.now()
         );
 
-        ComboBox<String> startTime =
-                new ComboBox<>(
-                        FXCollections.observableArrayList(START_TIMES)
-                );
-
-        I18n.localizeTimes(startTime);
-        startTime.setValue("08:00");
-        if (editMode && eventToEdit.getStart_time() != null) {
-            startTime.setValue(eventToEdit.getStart_time().format(TIME_FORMAT));
-        }
-
-
-        // END TIME
-
-
-        ComboBox<String> endTime =
-                new ComboBox<>(
-                        FXCollections.observableArrayList(END_TIMES)
-                );
-
-        I18n.localizeTimes(endTime);
-        endTime.setValue("09:00");
-        if (editMode && eventToEdit.getEnd_time() != null) {
-            endTime.setValue(eventToEdit.getEnd_time().format(TIME_FORMAT));
-        }
-
+        ComboBox<String> startTime = createTimeChoice(START_TIMES, "08:00",
+                editMode ? eventToEdit.getStart_time() : null);
+        ComboBox<String> endTime = createTimeChoice(END_TIMES, "09:00",
+                editMode ? eventToEdit.getEnd_time() : null);
 
         // LOCATION
 
@@ -354,31 +332,7 @@ public class AddEventDialog {
                         selectedColor
                 );
 
-                save.setDisable(true);
-                cancel.setDisable(true);
-                delete.setDisable(true);
-                I18n.bind(message.textProperty(), "");
-
-                Thread worker = new Thread(() -> {
-                    boolean saved = editMode
-                            ? addEventService.updateEvent(userId, event)
-                            : addEventService.addEvent(userId, event);
-                    Platform.runLater(() -> {
-                        save.setDisable(false);
-                        cancel.setDisable(false);
-                        delete.setDisable(userId <= 0);
-                        if (saved) {
-                            onSaved.run();
-                            dialog.close();
-                        } else {
-                            I18n.bind(message.textProperty(), editMode
-                                    ? "event.updateFailed"
-                                    : "event.saveFailed");
-                        }
-                    });
-                }, editMode ? "event-update" : "event-save");
-                worker.setDaemon(true);
-                worker.start();
+                saveEvent(dialog, event, editMode, save, cancel, delete, message);
 
             } catch (Exception ex) {
 
@@ -457,6 +411,43 @@ public class AddEventDialog {
         );
 
         return box;
+    }
+
+    private ComboBox<String> createTimeChoice(String[] choices, String defaultTime, LocalTime selectedTime) {
+        ComboBox<String> choice = new ComboBox<>(FXCollections.observableArrayList(choices));
+        // Keep ISO values for parsing; I18n controls only their visible representation.
+        I18n.localizeTimes(choice);
+        choice.setValue(selectedTime == null ? defaultTime : selectedTime.format(TIME_FORMAT));
+        return choice;
+    }
+
+    private void saveEvent(Stage dialog, Event event, boolean editMode,
+                           Button save, Button cancel, Button delete, Label message) {
+        save.setDisable(true);
+        cancel.setDisable(true);
+        delete.setDisable(true);
+        I18n.bind(message.textProperty(), "");
+
+        Thread worker = new Thread(() -> {
+            boolean saved = editMode
+                    ? addEventService.updateEvent(userId, event)
+                    : addEventService.addEvent(userId, event);
+            Platform.runLater(() -> {
+                save.setDisable(false);
+                cancel.setDisable(false);
+                delete.setDisable(userId <= 0);
+                if (saved) {
+                    onSaved.run();
+                    dialog.close();
+                } else {
+                    I18n.bind(message.textProperty(), editMode
+                            ? "event.updateFailed"
+                            : "event.saveFailed");
+                }
+            });
+        }, editMode ? "event-update" : "event-save");
+        worker.setDaemon(true);
+        worker.start();
     }
 
     private VBox labeled(
