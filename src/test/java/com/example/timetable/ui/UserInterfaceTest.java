@@ -37,6 +37,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.junit.jupiter.api.Assertions.*;
 
 class UserInterfaceTest {
+    private static String savedLanguage;
     @Test
     void localizationCatalogsHaveMatchingKeysAndValidPatterns() throws Exception {
         var base = new java.util.Properties();
@@ -181,13 +182,87 @@ class UserInterfaceTest {
         javax.imageio.ImageIO.write(image, "png", directory.resolve(name + ".png").toFile());
     }
 
+    @Test
+    @org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable(named = "DB_LOCALIZATION_TEST", matches = "true")
+    void multilingualDatabaseRoundTripAndLocaleSwitch() throws Exception {
+        try (Connection connection = java.sql.DriverManager.getConnection(
+                System.getenv().getOrDefault("DB_URL", "jdbc:mariadb://localhost:3306/student_timetable"),
+                System.getenv().getOrDefault("DB_USER", "student"),
+                System.getenv().getOrDefault("DB_PASSWORD", "student"))) {
+            connection.setAutoCommit(false);
+            try {
+                int userId;
+                try (var insert = connection.prepareStatement(
+                        "INSERT INTO student_timetable.users(username,email,password_hash) VALUES (?,?,?)",
+                        java.sql.Statement.RETURN_GENERATED_KEYS)) {
+                    String token = java.util.UUID.randomUUID().toString();
+                    insert.setString(1, token);
+                    insert.setString(2, token + "@example.invalid");
+                    insert.setString(3, "integration-test-no-login");
+                    insert.executeUpdate();
+                    try (var keys = insert.getGeneratedKeys()) { assertTrue(keys.next()); userId = keys.getInt(1); }
+                }
+                String title = "Meeting · Ääkköset · اجتماع · 授業";
+                String location = "  Helsinki · قاعة · 教室 🏫  ";
+                var service = new AddEvent(new eventRepository(connection));
+                var date = LocalDate.now().with(java.time.DayOfWeek.MONDAY);
+                var event = new Event(0, title, LocalTime.of(13, 0), LocalTime.of(14, 0), date, location, "blue");
+                assertTrue(service.addEvent(userId, event));
+                var loaded = service.getEventsBetween(userId, date, date.plusDays(7)).getFirst();
+                assertEquals(title, loaded.getTitle());
+                assertEquals(location, loaded.getLocation());
+                var databaseView = FxTestSupport.onFxThread(() -> new TimetableView(service, userId));
+                for (int attempt = 0; attempt < 100; attempt++) {
+                    boolean ready = FxTestSupport.onFxThread(() -> {
+                        var scroll = FxTestSupport.find(databaseView, ScrollPane.class, x -> true);
+                        return FxTestSupport.findAll(scroll.getContent(), Label.class).stream().anyMatch(x -> title.equals(x.getText()));
+                    });
+                    if (ready) break;
+                    Thread.sleep(50);
+                }
+                FxTestSupport.onFxThread(() -> {
+                    var original = com.example.timetable.i18n.I18n.locale();
+                    try {
+                        var view = databaseView;
+                        // ScrollPane content is traversed explicitly before a skin is installed.
+                        var scroll = FxTestSupport.find(view, ScrollPane.class, x -> true);
+                        var labels = FxTestSupport.findAll(scroll.getContent(), Label.class);
+                        for (var locale : com.example.timetable.i18n.I18n.LANGUAGES) {
+                            com.example.timetable.i18n.I18n.setLocale(locale);
+                            assertTrue(labels.stream().anyMatch(x -> title.equals(x.getText())));
+                            assertTrue(labels.stream().anyMatch(x -> location.equals(x.getText())));
+                            String expectedDate = java.time.format.DateTimeFormatter.ofLocalizedDate(
+                                    java.time.format.FormatStyle.SHORT).withLocale(locale)
+                                    .withDecimalStyle(java.time.format.DecimalStyle.of(locale)).format(date);
+                            String expectedTime = java.time.format.DateTimeFormatter.ofLocalizedTime(
+                                    java.time.format.FormatStyle.SHORT).withLocale(locale)
+                                    .withDecimalStyle(java.time.format.DecimalStyle.of(locale)).format(LocalTime.of(13, 0));
+                            assertTrue(labels.stream().anyMatch(x -> x.getStyleClass().contains("day-short") && x.getText().contains(expectedDate)));
+                            assertTrue(labels.stream().anyMatch(x -> x.getStyleClass().contains("event-time") && x.getText().contains(expectedTime)));
+                        }
+                    } finally { com.example.timetable.i18n.I18n.setLocale(original); }
+                    return null;
+                });
+            } finally { connection.rollback(); }
+        }
+    }
     @BeforeAll
     static void startJavaFx() throws Exception {
+        var preferences = java.util.prefs.Preferences.userNodeForPackage(com.example.timetable.i18n.I18n.class);
+        savedLanguage = preferences.get("language", null);
+        preferences.put("language", "en-GB");
         FxTestSupport.startToolkit();
+        FxTestSupport.onFxThread(() -> {
+            com.example.timetable.i18n.I18n.setLocale(com.example.timetable.i18n.I18n.ENGLISH);
+            return null;
+        });
     }
 
     @AfterAll
     static void stopJavaFx() throws Exception {
+        var preferences = java.util.prefs.Preferences.userNodeForPackage(com.example.timetable.i18n.I18n.class);
+        if (savedLanguage == null) preferences.remove("language");
+        else preferences.put("language", savedLanguage);
         FxTestSupport.shutdownToolkit();
     }
 

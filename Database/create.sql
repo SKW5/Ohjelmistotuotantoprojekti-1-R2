@@ -1,4 +1,4 @@
-CREATE DATABASE IF NOT EXISTS student_timetable;
+CREATE DATABASE IF NOT EXISTS student_timetable CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 USE student_timetable;
 
@@ -8,7 +8,7 @@ CREATE TABLE users (
                        email VARCHAR(100) NOT NULL UNIQUE,
                        password_hash VARCHAR(255) NOT NULL,
                        major VARCHAR(100) NULL
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE timetable_events (
                                   event_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -24,7 +24,7 @@ CREATE TABLE timetable_events (
                                   FOREIGN KEY (user_id)
                                       REFERENCES users(user_id)
                                       ON DELETE CASCADE
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 CREATE TABLE reminders (
                            reminder_id INT AUTO_INCREMENT PRIMARY KEY,
@@ -39,4 +39,4 @@ CREATE TABLE reminders (
                            FOREIGN KEY (event_id)
                                REFERENCES timetable_events(event_id)
                                ON DELETE CASCADE
-);
+) DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;

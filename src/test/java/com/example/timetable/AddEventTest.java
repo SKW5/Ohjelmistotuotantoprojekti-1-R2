@@ -69,7 +69,7 @@ class AddEventTest {
 
         assertEquals(1, repository.updateCalls);
         assertEquals(42, repository.updatedEvent.getEvent_id());
-        assertEquals("Workshop", repository.updatedEvent.getTitle());
+        assertEquals("  Workshop  ", repository.updatedEvent.getTitle());
     }
 
     @Test

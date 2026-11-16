@@ -254,9 +254,9 @@ public class AddEventDialog {
         save.setOnAction(e -> {
 
             String eventName =
-                    name.getText().trim();
+                    name.getText();
 
-            if (eventName.isEmpty()) {
+            if (eventName.isBlank()) {
 
                 name.setStyle(
                         "-fx-border-color: red;"
@@ -265,7 +265,7 @@ public class AddEventDialog {
                 I18n.bind(message.textProperty(), "event.nameRequired");
                 return;
             }
-            if (eventName.length() > AddEvent.MAX_TITLE_LENGTH) {
+            if (eventName.codePointCount(0, eventName.length()) > AddEvent.MAX_TITLE_LENGTH) {
                 name.setStyle("-fx-border-color: red;");
                 I18n.bind(message.textProperty(), "event.nameLength", AddEvent.MAX_TITLE_LENGTH);
                 return;
@@ -326,8 +326,8 @@ public class AddEventDialog {
 
                 endTime.setStyle("");
 
-                String location = room.getText() == null ? "" : room.getText().trim();
-                if (location.length() > AddEvent.MAX_LOCATION_LENGTH) {
+                String location = room.getText() == null ? "" : room.getText();
+                if (location.codePointCount(0, location.length()) > AddEvent.MAX_LOCATION_LENGTH) {
                     room.setStyle("-fx-border-color: red;");
                     I18n.bind(message.textProperty(), "event.locationLength", AddEvent.MAX_LOCATION_LENGTH);
                     return;

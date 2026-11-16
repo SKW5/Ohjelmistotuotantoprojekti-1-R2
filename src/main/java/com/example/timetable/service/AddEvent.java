@@ -47,12 +47,12 @@ public class AddEvent {
         if (userId <= 0 || event == null) return false;
         if (existingEvent && event.getEvent_id() <= 0) return false;
 
-        String title = event.getTitle() == null ? "" : event.getTitle().trim();
-        if (title.isEmpty()) {
+        String title = event.getTitle() == null ? "" : event.getTitle();
+        if (title.isBlank()) {
             System.err.println("Event title cannot be empty.");
             return false;
         }
-        if (title.length() > MAX_TITLE_LENGTH) return false;
+        if (title.codePointCount(0, title.length()) > MAX_TITLE_LENGTH) return false;
         event.setTitle(title);
 
         if (event.getEvent_date() == null || event.getStart_time() == null || event.getEnd_time() == null) {
@@ -62,8 +62,8 @@ public class AddEvent {
             return false;
         }
 
-        String location = event.getLocation() == null ? "" : event.getLocation().trim();
-        if (location.length() > MAX_LOCATION_LENGTH) return false;
+        String location = event.getLocation() == null ? "" : event.getLocation();
+        if (location.codePointCount(0, location.length()) > MAX_LOCATION_LENGTH) return false;
         event.setLocation(location);
 
         String color = event.getColor() == null ? "blue" : event.getColor().toLowerCase(Locale.ROOT);

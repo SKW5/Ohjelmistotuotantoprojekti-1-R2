@@ -110,3 +110,26 @@ JavaFX-ikkunan näyttämiseen tarvitaan toimiva X11-yhteys. Älä avaa Xmingiä 
 - `src/main/java/.../model` sisältää käyttäjä- ja tapahtumatietojen mallit.
 - `src/test/java` sisältää yksikkö- ja käyttöliittymätestit.
 - `Database/create.sql` luo tietokannan taulut.
+
+## Database localization (Sprint 6)
+
+New installations explicitly use `utf8mb4`. Existing volumes are not reinitialized:
+back up and test [migration 006](Database/migrations/006_utf8mb4.sql) on a restored
+clone first. Never delete the volume to migrate. See the
+[plan](docs/database-localization-plan.md),
+[implementation and verification report](docs/database-localization-report.md),
+and [current ER diagram](Documents/ER-diagram.md).
+
+Event titles and locations are saved as entered, including whitespace. Dates and
+times stay SQL DATE/TIME and display using the selected UI locale. MariaDB
+Connector/J negotiates Unicode; no MySQL-only `useUnicode` URL flags are needed.
+
+Opt-in real database test (creates temporary rows and rolls them back):
+
+```powershell
+$env:DB_LOCALIZATION_TEST = 'true'
+mvn '-Dtest=UserInterfaceTest#multilingualDatabaseRoundTripAndLocaleSwitch' test
+```
+
+Uses the same DB_URL, DB_USER and DB_PASSWORD defaults as the application. Run only
+against a development database: rollback removes rows but auto-increment IDs advance.

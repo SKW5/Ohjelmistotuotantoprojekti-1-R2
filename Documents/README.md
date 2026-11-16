@@ -8,3 +8,5 @@ Technology stack
 We have decided to use this technology stack becouse all of us had previous experience with Java, JavaFX and mariaDB 
 
 Figma product design: [Open Figma design](https://www.figma.com/design/T6PRalvJfPwSGON768hQqe/Student-timetable?node-id=3-271&t=VfmWSEvybCtaLcV2-1)
+
+Current database ER diagram: [ER-diagram.md](ER-diagram.md) (Sprint 6, including encoding policy).
